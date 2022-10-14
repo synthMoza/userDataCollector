@@ -1,1 +1,3 @@
-# userDataCollector
+# User Data Collector
+
+// YOU MAY ALLOC SOME MEMORE AND STORE SOMETHING THERE
