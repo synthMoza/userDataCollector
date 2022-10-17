@@ -1,9 +1,12 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.1)
 
-# Set flags for Release/Debug
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
+
+message(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
+set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
