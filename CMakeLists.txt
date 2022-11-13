@@ -13,7 +13,10 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-add_subdirectory(lib) # lib will be used by client & server, build it first
+# lib & its dependencies
+add_subdirectory(3rd_party/json)
+add_subdirectory(lib)
+
 add_subdirectory(server)
 add_subdirectory(client)
 

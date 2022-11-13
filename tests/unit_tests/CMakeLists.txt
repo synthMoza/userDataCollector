@@ -3,7 +3,10 @@ project(unit_tests)
 set(SRC_DIR source)
 set(INCLUDE_DIR include)
 
-set(SRC ${SRC_DIR}/main.cpp ${SRC_DIR}/file_data_tests.cpp)
+set(SRC 
+    ${SRC_DIR}/main.cpp 
+    ${SRC_DIR}/data_tests.cpp
+)
 
 add_executable(${PROJECT_NAME} ${SRC})
 
