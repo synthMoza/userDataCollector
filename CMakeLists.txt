@@ -16,3 +16,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 add_subdirectory(lib) # lib will be used by client & server, build it first
 add_subdirectory(server)
 add_subdirectory(client)
+
+if (DEFINED WITH_TESTS)
+  add_subdirectory(3rd_party/googletest)
+  enable_testing()
+  
+  add_subdirectory(tests)
+endif()

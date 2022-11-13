@@ -6,20 +6,64 @@
 namespace udc
 {
 
-/*
-    Basic class for classes to be serializable, defines such methods as Serialize and Deserialize.
-*/
-class IData
+/**
+ * @brief Base interface for classes to be serializable
+ * 
+ */
+class ISerializableData
 {
 public:
-    /// @brief Serialize class into blob
-    /// @return Blob containing packed class data
+    /**
+     * @brief Serialize class into blob
+     * 
+     * @return blob_t containing packed class data
+     */
     virtual blob_t Serialize() = 0;
-    /// @brief Deserialize given blob and put data into this class
-    /// @param blob Input blob with serialized data
+    
+    virtual ~ISerializableData() {}
+};
+
+/**
+ * @brief Base interface for classes to be deserializable
+ * 
+ */
+class IDeserializableData
+{
+public:
+    /**
+     * @brief Deserialize given blob and put data into this class
+     * 
+     * @param blob input blob with serialized data
+     */
     virtual void Deserialize(blob_t& blob) = 0;
     
-    virtual ~IData();
+    virtual ~IDeserializableData() {}
+};
+
+/**
+ * @brief Base interface for classes to be both serializable and deserializable.
+ * 
+ * Seperate classes are required for typical scenarios when client only wants to serialize data, and server only wants to deserialize data
+ * It still requires both implementation (serializable/deserilizable) to be useful for client/server sides 
+ */
+class IData : public ISerializableData, public IDeserializableData
+{
+public:
+    /**
+     * @brief Serialize class into blob
+     * 
+     * @return blob_t containing packed class data
+     */
+    virtual blob_t Serialize() = 0;
+
+    /**
+     * @brief Deserialize given blob and put data into this class
+     * 
+     * @param blob input blob with serialized data
+     */
+    virtual void Deserialize(blob_t& blob) = 0;
+
+    virtual ~IData() {}
 };
 
 }
