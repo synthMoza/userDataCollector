@@ -11,8 +11,8 @@ template <typename KeyValue>
 class IPublicKey
 {
 public:
-    virtual KeyValue GetKeyForEncryption() = 0;
-    virtual KeyValue GetKeyForTestingSignature() = 0;
+    virtual KeyValue GetKeyForEncryption() const = 0;
+    virtual KeyValue GetKeyForTestingSignature() const = 0;
 
     virtual ~IPublicKey() {}
 };
@@ -21,8 +21,8 @@ template <typename KeyValue>
 class IPrivateKey
 {
 public:
-    virtual KeyValue GetKeyForDecryption() = 0;
-    virtual KeyValue GetKeyForMakingSignature() = 0;
+    virtual KeyValue GetKeyForDecryption() const = 0;
+    virtual KeyValue GetKeyForMakingSignature() const = 0;
 
     virtual ~IPrivateKey() {}
 };
@@ -31,14 +31,14 @@ template <typename PublicKeyValue, typename PrivateKeyValue>
 class IKey : public IPublicKey<PublicKeyValue>, public IPrivateKey<PrivateKeyValue>
 { };
 
-template <typename PublicKeyValue, typename PrivateKeyValue>
+template <typename PublicKey, typename PrivateKey>
 class IKeyGenerator
 {
 public:
     virtual void Generate() = 0;
 
-    virtual IPublicKey<PublicKeyValue>& GetPublicKey() = 0;
-    virtual IPrivateKey<PrivateKeyValue>& GetPrivateKey() = 0;
+    virtual PublicKey GetPublicKey() const = 0;
+    virtual PrivateKey GetPrivateKey() const = 0;
 
     virtual ~IKeyGenerator() {}
 };
@@ -48,7 +48,7 @@ class IEncryptor
 {
 public:
     virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<KeyValue>& key) = 0;
-    virtual bool   TestSignature(blob_t& inputBlob, const IPublicKey<KeyValue>& key) = 0;
+    virtual bool   TestSignature(const blob_t& inputBlob, const IPublicKey<KeyValue>& key) = 0;
 
     virtual ~IEncryptor() {}
 };
@@ -57,27 +57,27 @@ template <typename KeyValue>
 class IDecryptor
 {
 public:
-    virtual blob_t Decrypt(blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
-    virtual blob_t MakeSignature(blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
+    virtual blob_t Decrypt(const blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
+    virtual blob_t MakeSignature(const blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
 
     virtual ~IDecryptor() {}
 };
 
 template <typename PublicKeyValue, typename PrivateKeyValue>
-class ICryptor : IEncryptor<PublicKeyValue>, IDecryptor<PrivateKeyValue>
+class ICryptor : public IEncryptor<PublicKeyValue>, public IDecryptor<PrivateKeyValue>
 {};
 
 
 class DummyKey : public IKey<void, void>
 {
 public:
-    virtual void GetKeyForEncryption() override {};
-    virtual void GetKeyForTestingSignature() override {};
-    virtual void GetKeyForDecryption() override {};
-    virtual void GetKeyForMakingSignature() override {};
+    virtual void GetKeyForEncryption() const override {};
+    virtual void GetKeyForTestingSignature() const override {};
+    virtual void GetKeyForDecryption() const override {};
+    virtual void GetKeyForMakingSignature() const override {};
 };
 
-class DummyCryptor : ICryptor<void, void>
+class DummyCryptor : public ICryptor<void, void>
 {
 public:
     virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<void>& key) override 
@@ -85,7 +85,7 @@ public:
         static_cast<void>(key); // unused parameter
         return inputBlob; 
     }
-    virtual bool   TestSignature(blob_t& inputBlob, const IPublicKey<void>& key) override 
+    virtual bool   TestSignature(const blob_t& inputBlob, const IPublicKey<void>& key) override 
     { 
         static_cast<void>(key); // unused parameters
         static_cast<void>(inputBlob);
@@ -93,12 +93,12 @@ public:
         return true; 
     }
 
-    virtual blob_t Decrypt(blob_t& inputBlob, const IPrivateKey<void>& key) override 
+    virtual blob_t Decrypt(const blob_t& inputBlob, const IPrivateKey<void>& key) override 
     { 
         static_cast<void>(key); // unused parameter
         return inputBlob; 
     }
-    virtual blob_t MakeSignature(blob_t& inputBlob, const IPrivateKey<void>& key) override
+    virtual blob_t MakeSignature(const blob_t& inputBlob, const IPrivateKey<void>& key) override
     { 
         static_cast<void>(key); // unused parameter
         return inputBlob;
