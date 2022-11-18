@@ -7,19 +7,6 @@
 namespace udc
 {
 
-/*
-    TODO (eganian.aa@phystech.edu):
-    
-    Come up with a cryptors interface, take into consideration - 
-    they have to be flexible enough, so maybe there might be a
-    separate "key_generator.h" and KeyGenerator might be a template
-    parameter. They have to have, as a part of their interface, something
-    like this:
-        blob_t Encrypt(blob_t& inputBlob);
-        blob_t Decrypt(blob_t& inputBlob);
-
-*/
-
 template <typename KeyValue>
 class IPublicKey
 {
@@ -27,7 +14,7 @@ public:
     virtual KeyValue GetKeyForEncryption() = 0;
     virtual KeyValue GetKeyForTestingSignature() = 0;
 
-    virtual ~IPublicKey() {};
+    virtual ~IPublicKey() {}
 };
 
 template <typename KeyValue>
@@ -37,7 +24,7 @@ public:
     virtual KeyValue GetKeyForDecryption() = 0;
     virtual KeyValue GetKeyForMakingSignature() = 0;
 
-    virtual ~IPrivateKey() {};
+    virtual ~IPrivateKey() {}
 };
 
 template <typename PublicKeyValue, typename PrivateKeyValue>
@@ -52,6 +39,8 @@ public:
 
     virtual IPublicKey<PublicKeyValue>& GetPublicKey() = 0;
     virtual IPrivateKey<PrivateKeyValue>& GetPrivateKey() = 0;
+
+    virtual ~IKeyGenerator() {}
 };
 
 template <typename KeyValue>
@@ -76,7 +65,7 @@ public:
 
 template <typename PublicKeyValue, typename PrivateKeyValue>
 class ICryptor : IEncryptor<PublicKeyValue>, IDecryptor<PrivateKeyValue>
-{ };
+{};
 
 
 class DummyKey : public IKey<void, void>
@@ -91,11 +80,29 @@ public:
 class DummyCryptor : ICryptor<void, void>
 {
 public:
-    virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<void>& key) override { return inputBlob; }
-    virtual bool   TestSignature(blob_t& inputBlob, const IPublicKey<void>& key) override { return true; }
+    virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<void>& key) override 
+    { 
+        static_cast<void>(key); // unused parameter
+        return inputBlob; 
+    }
+    virtual bool   TestSignature(blob_t& inputBlob, const IPublicKey<void>& key) override 
+    { 
+        static_cast<void>(key); // unused parameters
+        static_cast<void>(inputBlob);
+        
+        return true; 
+    }
 
-    virtual blob_t Decrypt(blob_t& inputBlob, const IPrivateKey<void>& key) override { return inputBlob; }
-    virtual blob_t MakeSignature(blob_t& inputBlob, const IPrivateKey<void>& key) override { return inputBlob; }
+    virtual blob_t Decrypt(blob_t& inputBlob, const IPrivateKey<void>& key) override 
+    { 
+        static_cast<void>(key); // unused parameter
+        return inputBlob; 
+    }
+    virtual blob_t MakeSignature(blob_t& inputBlob, const IPrivateKey<void>& key) override
+    { 
+        static_cast<void>(key); // unused parameter
+        return inputBlob;
+    }
 };
 
 }

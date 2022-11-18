@@ -18,16 +18,20 @@ TEST(FileData, SimpleSerialization)
     std::string inputFileName = "input_test_file1.txt";
     std::string outputFileName = "output_test_file1.txt";
 
-    std::ofstream fileStream(inputFileName);
-    fileStream << fileContent;
+    // Write data in inner scope to not confuse filesystem lib with multiply-opened same file    
+    {
+        std::ofstream fileStream(inputFileName, std::ios::binary);
+        fileStream << fileContent;
+        fileStream.close();
 
-    // Create input test file data
-    InputFileData inputFileData(inputFileName);
-    auto blob = inputFileData.Serialize();
+        // Create input test file data
+        InputFileData inputFileData(inputFileName);
+        auto blob = inputFileData.Serialize();
 
-    // Create output test file data and compare
-    OutputFileData outputFileData(outputFileName);
-    outputFileData.Deserialize(blob);
+        // Create output test file data and compare
+        OutputFileData outputFileData(outputFileName);
+        outputFileData.Deserialize(blob);
+    }
 
     // Compare files content (original = deserialized)
     EXPECT_TRUE(helpers::CompareFileContent(inputFileName, outputFileName));

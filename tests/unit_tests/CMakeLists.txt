@@ -6,6 +6,7 @@ set(INCLUDE_DIR include)
 set(SRC 
     ${SRC_DIR}/main.cpp 
     ${SRC_DIR}/data_tests.cpp
+    ${SRC_DIR}/cryptor_tests.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SRC})

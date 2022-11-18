@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <filesystem>
 
 #include "data.h"
 
@@ -16,7 +17,7 @@ namespace udc
  */
 class InputFileData : public ISerializableData
 {
-    std::ifstream m_inputFile;
+    std::string m_inputFilePath;
 public:
     /**
      * @brief Construct a new Input File Data object
@@ -24,20 +25,22 @@ public:
      * @param inputFilePath path to the file to be serialized
      */
     InputFileData(const std::string& inputFilePath) :
-        m_inputFile(inputFilePath, std::ios_base::in | std::ios_base::binary) {}
+        m_inputFilePath(inputFilePath) {}
 
     blob_t Serialize() override
     {
         // Discover file size
-        m_inputFile.seekg(0, std::ios::end);
-        auto fileSize = m_inputFile.tellg();
-        m_inputFile.seekg(0, std::ios::beg);
-
+        auto fileSize = std::filesystem::file_size(m_inputFilePath);
+        
         // Reserve vector of bytes
-        std::vector<byte_t> bytesBuffer(fileSize);
+        std::vector<byte_t> bytesBuffer;
+        bytesBuffer.reserve(fileSize);
 
         // Read file into vector
-        bytesBuffer.insert(bytesBuffer.begin(), std::istream_iterator<byte_t>(m_inputFile), std::istream_iterator<byte_t>());
+        std::ifstream inputFileStream(m_inputFilePath, std::ios::binary);
+        std::noskipws(inputFileStream);
+
+        bytesBuffer.insert(bytesBuffer.begin(), std::istream_iterator<byte_t>(inputFileStream), std::istream_iterator<byte_t>());
 
         return bytesBuffer;
     }
