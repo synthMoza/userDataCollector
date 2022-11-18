@@ -18,14 +18,14 @@ TEST(DummyCryptor, SimpleEncrypt)
     EXPECT_EQ(dummyCryptor.MakeSignature(testData, dummyKey), testData); // signature == input data
 }
 
-TEST(OpenSSL_AES128_Cryptor, SimpleEncrypt)
+TEST(AES128_Cryptor, SimpleEncrypt)
 {
-    OpenSSL_AES128_KeyGenerator KeyGen;
+    AES128_KeyGenerator KeyGen;
     KeyGen.Generate();
-    OpenSSL_AES128_Cryptor AES_128_Cryptor{};
+    AES128_Cryptor AES_128_Cryptor{};
     
     blob_t testData = {0x1, 0x2, 0x3, 0x4, 0x5};
-    
+
     blob_t encryptedData = AES_128_Cryptor.Encrypt(testData, KeyGen.GetPublicKey());
 
     std::cout << "Encrypted array: ";
@@ -38,11 +38,11 @@ TEST(OpenSSL_AES128_Cryptor, SimpleEncrypt)
     EXPECT_EQ(AES_128_Cryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
 }
 
-TEST(OpenSSL_AES128_Cryptor, MediumEncrypt)
+TEST(AES128_Cryptor, MediumEncrypt)
 {
-    OpenSSL_AES128_KeyGenerator KeyGen;
+    AES128_KeyGenerator KeyGen;
     KeyGen.Generate();
-    OpenSSL_AES128_Cryptor AES_128_Cryptor{};
+    AES128_Cryptor AES_128_Cryptor{};
     constexpr size_t testDataSize = 10000;
     blob_t testData(testDataSize);
     for (size_t i = 0; i < testDataSize; ++i) {

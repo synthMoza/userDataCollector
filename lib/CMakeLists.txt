@@ -16,6 +16,6 @@ add_library(${PROJECT_NAME} SHARED ${SOURCE} ${INCLUDE})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIR})
 target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json::nlohmann_json) # JSON lib for JsonData class
-target_link_libraries(${PROJECT_NAME} PUBLIC ssl_lib)    # OpenSSL for
-target_link_libraries(${PROJECT_NAME} PUBLIC crypto_lib) # crypting
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::SSL)    # OpenSSL for
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenSSL::Crypto) # crypting
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)

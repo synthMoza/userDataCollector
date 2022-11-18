@@ -20,7 +20,6 @@ endif()
 
 # lib & its dependencies
 add_subdirectory(3rd_party/json)
-add_subdirectory(3rd_party/openssl-cmake)
 
 # Boost it quite difficult to install locally, so consider it is installed on the system
 find_package(Boost 1.7 REQUIRED COMPONENTS regex system)
@@ -28,6 +27,11 @@ if(Boost_FOUND)
   message(STATUS "Boost lib found!")
 else()
   message(FATAL_ERROR "Boost lib can't be found!")
+endif()
+
+find_package(OpenSSL REQUIRED)
+if (NOT OPENSSL_FOUND)
+  message(FATAL_ERROR "OpenSSL lib can't be found!")
 endif()
 
 add_subdirectory(lib)
