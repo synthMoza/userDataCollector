@@ -13,6 +13,11 @@ set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
+# check if given variables are correct
+if ((DEFINED WITH_PERF_TESTS) AND (NOT DEFINED WITH_TESTS))
+  message(FATAL_ERROR "Can't build perfomance tests without unit tests, please use WITH_PERF_TESTS only with WITH_TESTS")
+endif()
+
 # lib & its dependencies
 add_subdirectory(3rd_party/json)
 add_subdirectory(3rd_party/openssl-cmake)
@@ -33,6 +38,10 @@ add_subdirectory(client)
 if (DEFINED WITH_TESTS)
   add_subdirectory(3rd_party/googletest)
   enable_testing()
-  
+  if (DEFINED WITH_PERF_TESTS)
+    add_subdirectory(3rd_party/benchmark)
+  endif()
+
+
   add_subdirectory(tests)
 endif()
