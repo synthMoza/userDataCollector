@@ -3,7 +3,9 @@ project(lib) # TODO (eganian.aa@phystech.edu): come up with a good name for libr
 set(SOURCE_DIR source)
 set(INCLUDE_DIR include)
 
-set(SOURCE ${SOURCE_DIR}/)
+set(SOURCE 
+    ${SOURCE_DIR}/openssl_cryptors.cpp
+)
 set(INCLUDE 
     ${INCLUDE_DIR}/cryptor.h
     ${INCLUDE_DIR}/data.h
