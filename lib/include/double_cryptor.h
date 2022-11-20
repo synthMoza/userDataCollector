@@ -6,12 +6,14 @@
 namespace udc
 {
 // NOTE: Key for SymCryptor SHOULD be IData
-template <typename SymCryptor, typename ASymDecryptor, typename PrivateKeyType>
-class DoubleDecryptor : public IDecryptor<PrivateKeyType>
+template <typename SymCryptor, typename ASymDecryptor>
+class DoubleDecryptor : public IDecryptor<ASymDecryptor::private_key_type>
 {
 public:
-    virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKeyType& key);
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const PrivateKeyType& key)
+    using asym_private_key_type = ASymDecryptor::private_key_type;
+
+    virtual blob_t Decrypt(const blob_t& inputBlob, const asym_private_key_type& key);
+    virtual blob_t MakeSignature(const blob_t& inputBlob, const asym_private_key_type& key)
     {
         static_cast<void>(key); // unused parameters
         static_cast<void>(inputBlob);

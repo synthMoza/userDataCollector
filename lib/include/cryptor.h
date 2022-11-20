@@ -55,10 +55,20 @@ public:
     virtual ~IKeyGenerator() {}
 };
 
+template <typename KeyGenerator>
+KeyGenerator MakeKeyGenerator()
+{
+    KeyGenerator keyGen;
+    keyGen.Generate();
+    return keyGen;
+}
+
 template <typename PublicKeyType>
 class IEncryptor
 {
 public:
+    using public_key_type = PublicKeyType;
+
     virtual blob_t Encrypt(const blob_t& inputBlob, const PublicKeyType& key) = 0;
     virtual bool   TestSignature(const blob_t& inputBlob, const PublicKeyType& key) = 0;
 
@@ -69,6 +79,8 @@ template <typename PrivateKeyType>
 class IDecryptor
 {
 public:
+    using private_key_type = PrivateKeyType;
+
     virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
     virtual blob_t MakeSignature(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
 

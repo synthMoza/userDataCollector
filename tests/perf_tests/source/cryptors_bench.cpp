@@ -2,44 +2,74 @@
 
 #include <generate_helper.h>
 #include <AES128_cryptor.h>
+#include <RSA_cryptor.h>
 
 using namespace udc;
 
-static AES128_KeyGenerator g_keyGen;
-static AES128_Cryptor g_cryptor;
-static blob_t g_testData;
-
-static void AES128_Encrypt_DoSetup(const benchmark::State& state) 
-{
-    g_keyGen.Generate();
-    g_testData = helpers::GenerateRandomData(state.range(0));
-}
+// Generate keys only once
+static AES128_KeyGenerator g_AES128_keyGen = MakeKeyGenerator<AES128_KeyGenerator>();
 
 static void BM_AES128_Encrypt_RandomData(benchmark::State& state) 
 {
+    AES128_Cryptor cryptor{};
+
+    auto testData = helpers::GenerateRandomData(state.range(0));
     for (auto _ : state)
     {        
-        benchmark::DoNotOptimize(g_cryptor.Encrypt(g_testData, g_keyGen.GetPublicKey()));
+        benchmark::DoNotOptimize(cryptor.Encrypt(testData, g_AES128_keyGen.GetPublicKey()));
     }
 
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->Range(2 << 8, 2 << 24)->Setup(AES128_Encrypt_DoSetup)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->Range(2 << 8, 2 << 24)->Complexity(benchmark::oN);
 
-static void AES128_Decrypt_DoSetup(const benchmark::State& state) 
+static void BM_AES128_Decrypt_RandomData(benchmark::State& state) 
 {
-    g_keyGen.Generate();
-    g_testData = g_cryptor.Encrypt(helpers::GenerateRandomData(state.range(0)), g_keyGen.GetPublicKey());
-}
+    AES128_Cryptor cryptor{};
 
-static void BM_AES128_Decrypt_RandomData(benchmark::State& state) {
+    auto testData = helpers::GenerateRandomData(state.range(0));
+    testData = cryptor.Encrypt(testData, g_AES128_keyGen.GetPublicKey());
     for (auto _ : state)
     {        
-        benchmark::DoNotOptimize(g_cryptor.Decrypt(g_testData, g_keyGen.GetPrivateKey()));
+        benchmark::DoNotOptimize(cryptor.Decrypt(testData, g_AES128_keyGen.GetPrivateKey()));
     }
 
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->Range(2 << 8, 2 << 24)->Setup(AES128_Decrypt_DoSetup)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->Range(2 << 8, 2 << 24)->Complexity(benchmark::oN);
+
+static RSA_KeyGenerator g_RSA_keyGen = MakeKeyGenerator<RSA_KeyGenerator>();
+
+static void BM_RSA_Encrypt_RandomData(benchmark::State& state) 
+{
+    RSA_Encryptor encryptor{};
+
+    auto testData = helpers::GenerateRandomData(state.range(0));
+    for (auto _ : state)
+    {        
+        benchmark::DoNotOptimize(encryptor.Encrypt(testData, g_RSA_keyGen.GetPublicKey()));
+    }
+
+    state.SetComplexityN(state.range(0));
+}
+
+BENCHMARK(BM_RSA_Encrypt_RandomData)->RangeMultiplier(2)->Range(2 << 2, 2 << 10)->Complexity(benchmark::oN);
+
+static void BM_RSA_Decrypt_RandomData(benchmark::State& state) 
+{
+    RSA_Encryptor encryptor{};
+    RSA_Decryptor decryptor{};
+
+    auto testData = helpers::GenerateRandomData(state.range(0));
+    testData = encryptor.Encrypt(testData, g_RSA_keyGen.GetPublicKey());
+    for (auto _ : state)
+    {        
+        benchmark::DoNotOptimize(decryptor.Decrypt(testData, g_RSA_keyGen.GetPrivateKey()));
+    }
+
+    state.SetComplexityN(state.range(0));
+}
+
+BENCHMARK(BM_RSA_Decrypt_RandomData)->RangeMultiplier(2)->Range(2 << 2, 2 << 10)->Complexity(benchmark::oN);
