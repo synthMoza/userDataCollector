@@ -35,7 +35,7 @@ public:
      * 
      * @param blob input blob with serialized data
      */
-    virtual void Deserialize(blob_t& blob) = 0;
+    virtual void Deserialize(const blob_t& blob) = 0;
     
     virtual ~IDeserializableData() {}
 };
@@ -54,14 +54,14 @@ public:
      * 
      * @return blob_t containing packed class data
      */
-    virtual blob_t Serialize() = 0;
+    virtual blob_t Serialize() override = 0;
 
     /**
      * @brief Deserialize given blob and put data into this class
      * 
      * @param blob input blob with serialized data
      */
-    virtual void Deserialize(blob_t& blob) = 0;
+    virtual void Deserialize(const blob_t& blob) override = 0;
 
     virtual ~IData() {}
 };

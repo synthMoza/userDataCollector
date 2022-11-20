@@ -64,9 +64,9 @@ public:
     OutputFileData(const std::string& outputFilePath) :
         m_outputFile(outputFilePath, std::ios_base::out | std::ios_base::binary) {}
 
-    void Deserialize(blob_t& blob) override
+    void Deserialize(const blob_t& blob) override
     {
-        m_outputFile.write(reinterpret_cast<char*>(&blob[0]), blob.size());
+        m_outputFile.write(reinterpret_cast<const char*>(&blob[0]), blob.size());
     }
 
     virtual ~OutputFileData() {}

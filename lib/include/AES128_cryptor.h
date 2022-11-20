@@ -1,5 +1,5 @@
-#ifndef OPENSSL_CRYPTORS_LIB_HEADER
-#define OPENSSL_CRYPTORS_LIB_HEADER
+#ifndef AES128_CRYPTOR_LIB_HEADER
+#define AES128_CRYPTOR_LIB_HEADER
 
 #include <cstdio>
 #include <cstdlib>
@@ -16,12 +16,13 @@
 #include <sstream>
 #include <memory>
 
+#include "data.h"
 #include "cryptor.h"
 
 namespace udc
 {
 
-class AES128_Key : public IKey<blob_t, blob_t>
+class AES128_Key : public IKey<blob_t, blob_t>, public IData
 {
     blob_t m_key;
 public:
@@ -45,6 +46,16 @@ public:
     {
         return m_key;
     }
+
+    virtual blob_t Serialize() override
+    {
+        return m_key;
+    }
+
+    virtual void Deserialize(const blob_t& blob) override
+    {
+        SetKey(blob);
+    }
 };
 
 class AES128_KeyGenerator : public IKeyGenerator<AES128_Key, AES128_Key>
@@ -65,7 +76,7 @@ public:
 
 };
 
-class AES128_Cryptor : public ICryptor<blob_t, blob_t>
+class AES128_Cryptor : public ICryptor<AES128_Key, AES128_Key>
 {
     std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_reset)> m_ctx;
     
@@ -80,11 +91,11 @@ public:
 
     AES128_Cryptor();
 
-    virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<blob_t>& key) override;
+    virtual blob_t Encrypt(const blob_t& inputBlob, const AES128_Key& key) override;
 
-    virtual blob_t Decrypt(const blob_t& inputBlob, const IPrivateKey<blob_t>& key) override;
+    virtual blob_t Decrypt(const blob_t& inputBlob, const AES128_Key& key) override;
 
-    virtual bool TestSignature(const blob_t& inputBlob, const IPublicKey<blob_t>& key) 
+    virtual bool TestSignature(const blob_t& inputBlob, const AES128_Key& key) 
     {
         static_cast<void>(key); // unused parameters
         static_cast<void>(inputBlob);
@@ -92,7 +103,7 @@ public:
         return true; 
     }
 
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const IPrivateKey<blob_t>& key) override
+    virtual blob_t MakeSignature(const blob_t& inputBlob, const AES128_Key& key) override
     {
         static_cast<void>(key); // unused parameter
         return inputBlob;
@@ -101,4 +112,4 @@ public:
 
 }
 
-#endif // #define CRYPTOR_LIB_HEADER
+#endif // #define AES128_CRYPTOR_LIB_HEADER

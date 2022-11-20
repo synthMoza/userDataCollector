@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 
 #include <generate_helper.h>
-#include <openssl_cryptors.h>
+#include <AES128_cryptor.h>
 
 using namespace udc;
 

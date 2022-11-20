@@ -18,7 +18,7 @@ public:
         return {};
     };
 
-    void Deserialize(blob_t& blob) override
+    void Deserialize(const blob_t& blob) override
     {
         static_cast<void>(blob);
 

@@ -41,7 +41,7 @@ public:
 
     OutputJsonData() {}
 
-    void Deserialize(blob_t& blob) override
+    void Deserialize(const blob_t& blob) override
     {
         std::string jsonDump(blob.begin(), blob.end());
         m_json = nlohmann::json::parse(jsonDump);

@@ -4,14 +4,16 @@ set(SOURCE_DIR source)
 set(INCLUDE_DIR include)
 
 set(SOURCE 
-    ${SOURCE_DIR}/openssl_cryptors.cpp
+    ${SOURCE_DIR}/AES128_cryptor.cpp
+    ${SOURCE_DIR}/RSA_cryptor.cpp
 )
 set(INCLUDE 
     ${INCLUDE_DIR}/cryptor.h
     ${INCLUDE_DIR}/data.h
     ${INCLUDE_DIR}/file_data.h
     ${INCLUDE_DIR}/types.h
-    ${INCLUDE_DIR}/openssl_cryptors.h
+    ${INCLUDE_DIR}/AES128_cryptor.h
+    ${INCLUDE_DIR}/RSA_cryptor.h
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE} ${INCLUDE})

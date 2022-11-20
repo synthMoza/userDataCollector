@@ -1,7 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <cryptor.h>
-#include <openssl_cryptors.h>
+#include <AES128_cryptor.h>
+#include <RSA_cryptor.h>
 
 using namespace udc;
 
@@ -52,4 +53,44 @@ TEST(AES128_Cryptor, MediumEncrypt)
     blob_t encryptedData = AES_128_Cryptor.Encrypt(testData, KeyGen.GetPublicKey());
 
     EXPECT_EQ(AES_128_Cryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
+}
+
+TEST(RSA_Cryptor, SimpleEncrypt)
+{
+    RSA_KeyGenerator KeyGen;
+    KeyGen.Generate();
+    
+    RSA_Encryptor RSA_encryptor;
+    RSA_Decryptor RSA_decryptor;
+    
+    blob_t testData = {0x1, 0x2, 0x3, 0x4, 0x5};
+
+    blob_t encryptedData = RSA_encryptor.Encrypt(testData, KeyGen.GetPublicKey());
+
+    std::cout << "Encrypted array: ";
+
+    for (size_t i = 0; i < encryptedData.size(); ++i)
+        std::cout << static_cast<unsigned>(encryptedData[i]) << " ";
+    
+    std::cout << std::endl;
+
+    EXPECT_EQ(RSA_decryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
+}
+
+TEST(RSA_Cryptor, MediumEncrypt)
+{
+    RSA_KeyGenerator KeyGen;
+    KeyGen.Generate();
+    
+    RSA_Encryptor RSA_encryptor;
+    RSA_Decryptor RSA_decryptor;
+    constexpr size_t testDataSize = 100000;
+    blob_t testData(testDataSize);
+    for (size_t i = 0; i < testDataSize; ++i) {
+        testData[i] = static_cast<byte_t>(i);
+    }
+    
+    blob_t encryptedData = RSA_encryptor.Encrypt(testData, KeyGen.GetPublicKey());
+
+    EXPECT_EQ(RSA_decryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
 }

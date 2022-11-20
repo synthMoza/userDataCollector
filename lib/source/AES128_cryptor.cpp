@@ -1,4 +1,4 @@
-#include <openssl_cryptors.h>
+#include <AES128_cryptor.h>
 
 using namespace udc;
 
@@ -31,7 +31,7 @@ AES128_Cryptor::AES128_Cryptor() :
     }
 }
 
-blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const IPublicKey<blob_t>& key)
+blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const AES128_Key& key)
 {
     auto encryptionKey = key.GetKeyForEncryption();
     if (encryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
@@ -44,7 +44,7 @@ blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const IPublicKey<blob_t>
     return Crypt(inputBlob, opensslKey, opensslIV);
 }
 
-blob_t AES128_Cryptor::Decrypt(const blob_t& inputBlob, const IPrivateKey<blob_t>& key)
+blob_t AES128_Cryptor::Decrypt(const blob_t& inputBlob, const AES128_Key& key)
 {
     auto decryptionKey = key.GetKeyForDecryption();
     if (decryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
@@ -62,8 +62,8 @@ blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opens
     /* Allow enough space in output buffer for additional block */
     auto cipherBlockSize = EVP_CIPHER_block_size(m_params.cipherType);
 
-    blob_t outBuffer(BUFSIZE + cipherBlockSize);
     blob_t outBlob;
+    outBlob.resize((inputBlob.size() / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
 
     /* Don't set key or IV right away; we want to check lengths */
     if (!EVP_CipherInit_ex(m_ctx.get(), m_params.cipherType, NULL, NULL, NULL, m_params.encrypt))
@@ -85,6 +85,7 @@ blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opens
     }
 
     size_t bytesRead = 0;
+    size_t bytesWritten = 0;
     size_t bytesReadThisStep = 0;
     int outLength = 0;
 
@@ -93,15 +94,14 @@ blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opens
         // Read in data in blocks until EOF. Update the ciphering with each read.
         bytesReadThisStep = inputBlob.size() >= BUFSIZE + bytesRead ? BUFSIZE : inputBlob.size() - bytesRead;
 
-        if(!EVP_CipherUpdate(m_ctx.get(), &outBuffer[0], &outLength, &inputBlob[bytesRead], bytesReadThisStep))
+        if(!EVP_CipherUpdate(m_ctx.get(), &outBlob[bytesWritten], &outLength, &inputBlob[bytesRead], bytesReadThisStep))
         {
             std::stringstream stream;
             stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
             throw std::runtime_error(stream.str());
         }
         
-        outBlob.insert(outBlob.end(), outBuffer.begin(), outBuffer.begin() + outLength);
-
+        bytesWritten += outLength;
         bytesRead += bytesReadThisStep;
 
         if (bytesReadThisStep < BUFSIZE)
@@ -109,14 +109,17 @@ blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opens
     }
 
     /* Now cipher the final block and write it out to file */
-    if (!EVP_CipherFinal_ex(m_ctx.get(), &outBuffer[0], &outLength)) 
+    if (!EVP_CipherFinal_ex(m_ctx.get(), &outBlob[bytesWritten], &outLength)) 
     {
         std::stringstream stream;
         stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
         throw std::runtime_error(stream.str());
     }
 
-    outBlob.insert(outBlob.end(), outBuffer.begin(), outBuffer.begin() + outLength);
+    bytesWritten += outLength;
+
+    outBlob.resize(bytesWritten);
+    outBlob.shrink_to_fit();
 
     return outBlob;
 }
