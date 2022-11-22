@@ -22,11 +22,11 @@
 namespace udc
 {
 
-class AES128_Key : public IKey<blob_t, blob_t>, public IData
+class AES128_Key : public IKey<blob_t>, public IData
 {
     blob_t m_key;
 public:
-    void SetKey(const blob_t& new_key) 
+    void SetKey(const blob_t& new_key) override
     {
         m_key = new_key;
     }
@@ -47,7 +47,7 @@ public:
         return m_key;
     }
 
-    virtual blob_t Serialize() override
+    virtual blob_t Serialize() const override
     {
         return m_key;
     }
@@ -76,7 +76,7 @@ public:
 
 };
 
-class AES128_Cryptor : public ICryptor<AES128_Key, AES128_Key>
+class AES128_Cryptor : public ICryptor<AES128_Key>
 {
     std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_reset)> m_ctx;
     

@@ -14,6 +14,7 @@ set(INCLUDE
     ${INCLUDE_DIR}/types.h
     ${INCLUDE_DIR}/AES128_cryptor.h
     ${INCLUDE_DIR}/RSA_cryptor.h
+    ${INCLUDE_DIR}/double_cryptor.h
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE} ${INCLUDE})

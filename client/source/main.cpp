@@ -13,7 +13,7 @@ using namespace udc;
 class LogData : public IData
 {
 public:
-    blob_t Serialize() override 
+    blob_t Serialize() const override 
     {
         return {};
     };

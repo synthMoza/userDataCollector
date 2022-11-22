@@ -3,6 +3,7 @@
 #include <cryptor.h>
 #include <AES128_cryptor.h>
 #include <RSA_cryptor.h>
+#include <double_cryptor.h>
 
 using namespace udc;
 
@@ -93,4 +94,52 @@ TEST(RSA_Cryptor, MediumEncrypt)
     blob_t encryptedData = RSA_encryptor.Encrypt(testData, KeyGen.GetPublicKey());
 
     EXPECT_EQ(RSA_decryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
+}
+
+
+TEST(DoubleCryptor, SimpleEncrypt)
+{
+    RSA_KeyGenerator KeyGenRSA;
+    KeyGenRSA.Generate();
+    
+    AES128_KeyGenerator KeyGenAES128;
+    KeyGenAES128.Generate();
+
+    DoubleEncryptor<AES128_Cryptor, RSA_Encryptor> doubleEncryptor;
+    DoubleDecryptor<AES128_Cryptor, RSA_Decryptor> doubleDecryptor;
+    
+    blob_t testData = {0x1, 0x2, 0x3, 0x4, 0x5};
+
+    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_PublicKey>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
+
+    std::cout << "Encrypted array: ";
+
+    for (size_t i = 0; i < encryptedData.size(); ++i)
+        std::cout << static_cast<unsigned>(encryptedData[i]) << " ";
+    
+    std::cout << std::endl;
+
+    EXPECT_EQ(doubleDecryptor.Decrypt(encryptedData, KeyGenRSA.GetPrivateKey()), testData);
+}
+
+TEST(DoubleCryptor, MediumEncrypt)
+{
+    RSA_KeyGenerator KeyGenRSA;
+    KeyGenRSA.Generate();
+    
+    AES128_KeyGenerator KeyGenAES128;
+    KeyGenAES128.Generate();
+
+    DoubleEncryptor<AES128_Cryptor, RSA_Encryptor> doubleEncryptor;
+    DoubleDecryptor<AES128_Cryptor, RSA_Decryptor> doubleDecryptor;
+    
+    constexpr size_t testDataSize = 100000;
+    blob_t testData(testDataSize);
+    for (size_t i = 0; i < testDataSize; ++i) {
+        testData[i] = static_cast<byte_t>(i);
+    }
+
+    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_PublicKey>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
+
+    EXPECT_EQ(doubleDecryptor.Decrypt(encryptedData, KeyGenRSA.GetPrivateKey()), testData);
 }

@@ -18,7 +18,7 @@ public:
      * 
      * @return blob_t containing packed class data
      */
-    virtual blob_t Serialize() = 0;
+    virtual blob_t Serialize() const = 0;
     
     virtual ~ISerializableData() {}
 };
@@ -54,7 +54,7 @@ public:
      * 
      * @return blob_t containing packed class data
      */
-    virtual blob_t Serialize() override = 0;
+    virtual blob_t Serialize() const override = 0;
 
     /**
      * @brief Deserialize given blob and put data into this class

@@ -8,7 +8,14 @@ namespace udc
 {
 
 template <typename KeyValue>
-class IPublicKey
+class IBaseKey
+{
+public:
+    virtual void SetKey(const KeyValue& value) { static_cast<void>(value); };
+};
+
+template <typename KeyValue>
+class IPublicKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForEncryption() const = 0;
@@ -18,7 +25,7 @@ public:
 };
 
 template <typename KeyValue>
-class IPrivateKey
+class IPrivateKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForDecryption() const = 0;
@@ -27,8 +34,8 @@ public:
     virtual ~IPrivateKey() {}
 };
 
-template <typename PublicKeyValue, typename PrivateKeyValue>
-class IKey : public IPublicKey<PublicKeyValue>, public IPrivateKey<PrivateKeyValue>
+template <typename KeyValue>
+class IKey : public IPublicKey<KeyValue>, public IPrivateKey<KeyValue>
 { };
 
 
@@ -87,21 +94,24 @@ public:
     virtual ~IDecryptor() {}
 };
 
-template <typename PublicKeyType, typename PrivateKeyType>
-class ICryptor : public IEncryptor<PublicKeyType>, public IDecryptor<PrivateKeyType>
-{};
-
-
-class DummyKey : public IKey<void, void>
+template <typename KeyType>
+class ICryptor : public IEncryptor<KeyType>, public IDecryptor<KeyType>
 {
-public:
-    virtual void GetKeyForEncryption() const override {};
-    virtual void GetKeyForTestingSignature() const override {};
-    virtual void GetKeyForDecryption() const override {};
-    virtual void GetKeyForMakingSignature() const override {};
+    public:
+    using key_type = KeyType;
 };
 
-class DummyCryptor : public ICryptor<DummyKey, DummyKey>
+
+class DummyKey : public IKey<int>
+{
+public:
+    virtual int GetKeyForEncryption() const override { return 0; };
+    virtual int GetKeyForTestingSignature() const override { return 0; };
+    virtual int GetKeyForDecryption() const override { return 0; };
+    virtual int GetKeyForMakingSignature() const override { return 0; };
+};
+
+class DummyCryptor : public ICryptor<DummyKey>
 {
 public:
     virtual blob_t Encrypt(const blob_t& inputBlob, const DummyKey& key) override 

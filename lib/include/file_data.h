@@ -27,7 +27,7 @@ public:
     InputFileData(const std::string& inputFilePath) :
         m_inputFilePath(inputFilePath) {}
 
-    blob_t Serialize() override
+    blob_t Serialize() const override
     {
         // Discover file size
         auto fileSize = std::filesystem::file_size(m_inputFilePath);
