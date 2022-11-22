@@ -19,7 +19,6 @@ class IPublicKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForEncryption() const = 0;
-    virtual KeyValue GetKeyForTestingSignature() const = 0;
 
     virtual ~IPublicKey() {}
 };
@@ -29,7 +28,6 @@ class IPrivateKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForDecryption() const = 0;
-    virtual KeyValue GetKeyForMakingSignature() const = 0;
 
     virtual ~IPrivateKey() {}
 };
@@ -77,7 +75,7 @@ public:
     using public_key_type = PublicKeyType;
 
     virtual blob_t Encrypt(const blob_t& inputBlob, const PublicKeyType& key) = 0;
-    virtual bool   TestSignature(const blob_t& inputBlob, const PublicKeyType& key) = 0;
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PublicKeyType& key) = 0;
 
     virtual ~IEncryptor() {}
 };
@@ -89,7 +87,7 @@ public:
     using private_key_type = PrivateKeyType;
 
     virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PrivateKeyType& key) = 0;
 
     virtual ~IDecryptor() {}
 };
@@ -106,9 +104,7 @@ class DummyKey : public IKey<int>
 {
 public:
     virtual int GetKeyForEncryption() const override { return 0; };
-    virtual int GetKeyForTestingSignature() const override { return 0; };
     virtual int GetKeyForDecryption() const override { return 0; };
-    virtual int GetKeyForMakingSignature() const override { return 0; };
 };
 
 class DummyCryptor : public ICryptor<DummyKey>
@@ -119,23 +115,20 @@ public:
         static_cast<void>(key); // unused parameter
         return inputBlob; 
     }
-    virtual bool   TestSignature(const blob_t& inputBlob, const DummyKey& key) override 
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const DummyKey& key) override 
     { 
-        static_cast<void>(key); // unused parameters
-        static_cast<void>(inputBlob);
-        
-        return true; 
+        static_cast<void>(key); // unused parameter
+        return blob_t(inputBlobStart, inputBlobEnd); 
     }
-
     virtual blob_t Decrypt(const blob_t& inputBlob, const DummyKey& key) override 
     { 
         static_cast<void>(key); // unused parameter
         return inputBlob; 
     }
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const DummyKey& key) override
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const DummyKey& key) override 
     { 
         static_cast<void>(key); // unused parameter
-        return inputBlob;
+        return blob_t(inputBlobStart, inputBlobEnd); 
     }
 };
 

@@ -33,6 +33,11 @@ AES128_Cryptor::AES128_Cryptor() :
 
 blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const AES128_Key& key)
 {
+    return Encrypt(inputBlob.begin(), inputBlob.end(), key);
+}
+
+blob_t AES128_Cryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)
+{
     auto encryptionKey = key.GetKeyForEncryption();
     if (encryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
         throw std::length_error("Key is too small");
@@ -41,10 +46,15 @@ blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const AES128_Key& key)
     const unsigned char* opensslIV = &(encryptionKey[AES_256_KEY_SIZE]);
 
     m_params.encrypt = 1;
-    return Crypt(inputBlob, opensslKey, opensslIV);
+    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV);
 }
 
 blob_t AES128_Cryptor::Decrypt(const blob_t& inputBlob, const AES128_Key& key)
+{
+    return Decrypt(inputBlob.begin(), inputBlob.end(), key);
+}
+
+blob_t AES128_Cryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)
 {
     auto decryptionKey = key.GetKeyForDecryption();
     if (decryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
@@ -54,16 +64,18 @@ blob_t AES128_Cryptor::Decrypt(const blob_t& inputBlob, const AES128_Key& key)
     const unsigned char* opensslIV = &(decryptionKey[AES_256_KEY_SIZE]);
 
     m_params.encrypt = 0;
-    return Crypt(inputBlob, opensslKey, opensslIV);
+    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV);
 }
 
-blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opensslKey, const unsigned char* opensslIV)
+blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* opensslKey, const unsigned char* opensslIV)
 {
     /* Allow enough space in output buffer for additional block */
     auto cipherBlockSize = EVP_CIPHER_block_size(m_params.cipherType);
 
+    size_t inputBlobSize = inputBlobEnd - inputBlobStart;
+
     blob_t outBlob;
-    outBlob.resize((inputBlob.size() / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
+    outBlob.resize((inputBlobSize / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
 
     /* Don't set key or IV right away; we want to check lengths */
     if (!EVP_CipherInit_ex(m_ctx.get(), m_params.cipherType, NULL, NULL, NULL, m_params.encrypt))
@@ -92,9 +104,9 @@ blob_t AES128_Cryptor::Crypt(const blob_t& inputBlob, const unsigned char* opens
     while(true) 
     {
         // Read in data in blocks until EOF. Update the ciphering with each read.
-        bytesReadThisStep = inputBlob.size() >= BUFSIZE + bytesRead ? BUFSIZE : inputBlob.size() - bytesRead;
+        bytesReadThisStep = inputBlobSize >= BUFSIZE + bytesRead ? BUFSIZE : inputBlobSize - bytesRead;
 
-        if(!EVP_CipherUpdate(m_ctx.get(), &outBlob[bytesWritten], &outLength, &inputBlob[bytesRead], bytesReadThisStep))
+        if(!EVP_CipherUpdate(m_ctx.get(), &outBlob[bytesWritten], &outLength,  &(*(inputBlobStart + bytesRead)), bytesReadThisStep))
         {
             std::stringstream stream;
             stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);

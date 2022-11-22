@@ -34,15 +34,7 @@ public:
     {
         return m_key;
     }
-    virtual blob_t GetKeyForTestingSignature() const override 
-    {
-        return m_key;
-    }
     virtual blob_t GetKeyForDecryption() const override 
-    {
-        return m_key;
-    }
-    virtual blob_t GetKeyForMakingSignature() const override 
     {
         return m_key;
     }
@@ -86,28 +78,16 @@ class AES128_Cryptor : public ICryptor<AES128_Key>
         const EVP_CIPHER* cipherType;
     } m_params;
 
-    blob_t Crypt(const blob_t& inputBlob, const unsigned char* openssl_key, const unsigned char* openssl_iv);
+    blob_t Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* openssl_key, const unsigned char* openssl_iv);
 public:
 
     AES128_Cryptor();
 
     virtual blob_t Encrypt(const blob_t& inputBlob, const AES128_Key& key) override;
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key) override;
 
     virtual blob_t Decrypt(const blob_t& inputBlob, const AES128_Key& key) override;
-
-    virtual bool TestSignature(const blob_t& inputBlob, const AES128_Key& key) 
-    {
-        static_cast<void>(key); // unused parameters
-        static_cast<void>(inputBlob);
-        
-        return true; 
-    }
-
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const AES128_Key& key) override
-    {
-        static_cast<void>(key); // unused parameter
-        return inputBlob;
-    }
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key) override;
 };
 
 }

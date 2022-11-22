@@ -36,10 +36,6 @@ public:
     {
         return m_key;
     }
-    virtual blob_t GetKeyForTestingSignature() const override 
-    {
-        return m_key;
-    }
 };
 
 class RSA_PrivateKey final : public IPrivateKey<blob_t>
@@ -52,10 +48,6 @@ public:
     }
 
     virtual blob_t GetKeyForDecryption() const override 
-    {
-        return m_key;
-    }
-    virtual blob_t GetKeyForMakingSignature() const override 
     {
         return m_key;
     }
@@ -88,7 +80,7 @@ class RSA_CryptoAlgorithm
 
 public:
 
-    blob_t DoRSA(const blob_t& data, const blob_t& key, bool decrypt = false);
+    blob_t DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt = false);
 };
 }
 
@@ -96,26 +88,14 @@ class RSA_Encryptor final : public IEncryptor<RSA_PublicKey>, protected detail::
 {
 public:
     virtual blob_t Encrypt(const blob_t& inputBlob, const RSA_PublicKey& key) override;
-
-    virtual bool TestSignature(const blob_t& inputBlob, const RSA_PublicKey& key) override
-    {
-        static_cast<void>(key); // unused parameters
-        static_cast<void>(inputBlob);
-        
-        return true; 
-    }
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PublicKey& key) override;
 };
 
 class RSA_Decryptor final : public IDecryptor<RSA_PrivateKey>, protected detail::RSA_CryptoAlgorithm
 {
 public:
     virtual blob_t Decrypt(const blob_t& inputBlob, const RSA_PrivateKey& key) override;
-
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const RSA_PrivateKey& key) override
-    {
-        static_cast<void>(key); // unused parameter
-        return inputBlob;
-    }
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PrivateKey& key) override;
 };
 
 }
