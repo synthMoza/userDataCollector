@@ -23,7 +23,7 @@ static void BM_AES128_Encrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 8, 2 << 13, 2 << 7)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);
 
 static void BM_AES128_Decrypt_RandomData(benchmark::State& state) 
 {
@@ -39,7 +39,7 @@ static void BM_AES128_Decrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 8, 2 << 13, 2 << 7)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);
 
 static RSA_KeyGenerator g_RSA_keyGen = MakeKeyGenerator<RSA_KeyGenerator>();
 
@@ -88,9 +88,9 @@ static void BM_DoubleEncryptor_Encrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_DoubleEncryptor_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 2, 2 << 12, 2 << 7)->Complexity(benchmark::oN);
+BENCHMARK(BM_DoubleEncryptor_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);
 
-static void BM_DoubleEncryptor_Decrypt_RandomData(benchmark::State& state) 
+static void BM_DoubleEncryptor_Decrypt_RandomData(benchmark::State& state)
 {
     DoubleEncryptor<AES128_Cryptor, RSA_Encryptor> doubleEncryptor;
     DoubleDecryptor<AES128_Cryptor, RSA_Decryptor> doubleDecryptor;
@@ -105,4 +105,4 @@ static void BM_DoubleEncryptor_Decrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_DoubleEncryptor_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 2, 2 << 12, 2 << 7)->Complexity(benchmark::oN);
+BENCHMARK(BM_DoubleEncryptor_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);

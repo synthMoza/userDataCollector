@@ -5,15 +5,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plotBenchGraph(name, x, y):
+    list = name.split('_')[1:-1]
+    newName = ' '.join(list)
+
     plt.figure(figsize=(11.7,8.3))
     plt.grid(which='both')
     plt.grid(which='minor', alpha=0.2)
     plt.grid(which='major', alpha=0.5)
-    plt.title(name + ', CPU time dependency on iteration value')
+    plt.title(newName + ', time dependency on size')
     plt.minorticks_on()
     plt.autoscale()
-    plt.xlabel("iteration value", fontsize=10)
-    plt.ylabel("CPU time, ns", fontsize=10)
+    plt.xlabel("size, bytes", fontsize=10)
+    plt.ylabel("time, ns", fontsize=10)
     plt.plot(x, y, 'bo')
     plt.plot(x, y, 'r--')
     plt.savefig(name + '.png')
