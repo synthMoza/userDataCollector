@@ -1,45 +1,23 @@
 #include <iostream>
 
-// ===========================
+#include <client_manager.h>
 
-/*
-    ONLY FOR EXAMPLE, REMOVE ME LATER
-*/
+using namespace boost::asio; // delete me when io_service won't be created in main()
 
-#include <data.h>
-
-using namespace udc;
-
-class LogData : public IData
+int main()
 {
-public:
-    blob_t Serialize() const override 
-    {
-        return {};
-    };
-
-    void Deserialize(const blob_t& blob) override
-    {
-        static_cast<void>(blob);
-
-        return ;
-    }
-};
-
-// ===========================
-
-int main(int argc, char* argv[])
-{
-    // unused parameters
-    static_cast<void>(argc);
-    static_cast<void>(argv);
-
-    /*
-        TODO (eganian.aa@phystech.edu):
-
-        * Client interface might include input from user for server address to use.
-        * Does client need some other "things" besides just connecting to the server?
-    */
-
-    return EXIT_SUCCESS;
+	udc::blob_t data;
+	for (int i = 0 ; i < 1000 ; ++i)
+	{
+		data.push_back(i);
+	}
+	int t1 = 8009;
+	io_service server; // delete me!
+	udc::ClientManager test1(server , t1);
+	test1.Connect();
+	test1.GetKeys();
+	//TODO: crypt
+	test1.SendMessage(data);
+	test1.CloseConnection();
+	return 0;
 }

@@ -1,37 +1,15 @@
+#include <server_manager.h>
+
 #include <iostream>
-#include <boost/asio.hpp>
-#include <boost/array.hpp>
-#include "types.h"
 
-using namespace boost::asio;
+using namespace udc;
 
-class ServerManager
+ServerManager::ServerManager(io_service& serv) : 
+       m_udpSock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
+       m_acc(serv, ip::tcp::endpoint(ip::tcp::v4(), 8001)),
+       m_endpointBroadcast(ip::address_v4::broadcast(), 2222)
 {
-public:
-       ServerManager(io_service& serv);
-       void Connecting();
-       void Broadcasting();
-       udc::blob_t GetRecData()  { return RecData; }
-
-       ~ServerManager() {};
-private:
-       ip::udp::socket udp_sock;            /*Socket for broadcast messaging*/
-       ip::tcp::acceptor acc;               /*Acceptor for tcp connection*/
-       ip::udp::endpoint endpointBroadcast; 
-       udc::blob_t RecData;
-
-       std::string GetOwnAddress();
-       udc::blob_t Messaging(ip::tcp::socket& sock);
-       void SendingBroadcast();
-       void Connection();
-       void MessProc();
-};
-
-ServerManager::ServerManager(io_service& serv) : udp_sock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
-                                                 acc(serv, ip::tcp::endpoint(ip::tcp::v4(), 8001)),
-                                                 endpointBroadcast(ip::address_v4::broadcast(), 2222)
-{
-       udp_sock.set_option(socket_base::broadcast(true));
+       m_udpSock.set_option(socket_base::broadcast(true));
 }
 
 
@@ -75,11 +53,11 @@ udc::blob_t ServerManager::Messaging(ip::tcp::socket& sock)
        return for_msg;
 }
 
-void ServerManager::Connection()
+void ServerManager::Connect()
 {
        io_service serv;
-       Broadcasting();
-       acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(GetOwnAddress()), 8009));
+       Broadcast();
+       m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(GetOwnAddress()), 8009));
        std::cout << GetOwnAddress() << std::endl;
 
        while (true)
@@ -87,35 +65,28 @@ void ServerManager::Connection()
               ip::tcp::socket sock(serv);
               try
               {
-                     acc.accept(sock);
+                     m_acc.accept(sock);
                      std::cout << "CLIENT CONNECTED" << std::endl;
               }
               catch (boost::system::system_error& err)
               {
                      std::cout << err.what() << std::endl;
               }
-              RecData = Messaging(sock);        
-              MessProc();
+              m_recData = Messaging(sock);        
+              ProcessMessage();
               sock.close();
 
        }
 }
 
-void ServerManager::MessProc()
+void ServerManager::ProcessMessage()
 {
 
        //TODO:Encrypt data
-       for (auto&& it : RecData)
+       for (auto&& it : m_recData)
        {
               std::cout << "msg = " << static_cast<unsigned>(it) << std::endl;
        }
-}
-
-
-void ServerManager::Connecting()
-{
-       std::thread broad(&ServerManager::Connection, this);
-       broad.join();
 }
 
 void ServerManager::SendingBroadcast()
@@ -123,21 +94,12 @@ void ServerManager::SendingBroadcast()
        std::string add = GetOwnAddress();
        while (true)
        {
-              udp_sock.send_to(boost::asio::buffer(add), endpointBroadcast);
+              m_udpSock.send_to(boost::asio::buffer(add), m_endpointBroadcast);
        }
 }
 
-void ServerManager::Broadcasting()
+void ServerManager::Broadcast()
 {
        std::thread broad(&ServerManager::SendingBroadcast, this);
        broad.detach();
-}
-
-int main()
-{
-       io_service server;
-       ServerManager test(server);
-       test.Broadcasting();
-       test.Connecting();
-       return 0;
 }
