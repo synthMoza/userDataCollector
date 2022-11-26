@@ -8,29 +8,46 @@ namespace udc
 {
 
 template <typename KeyValue>
-class IPublicKey
+class IBaseKey
+{
+public:
+    virtual void SetKey(const KeyValue& value) { static_cast<void>(value); };
+};
+
+template <typename KeyValue>
+class IPublicKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForEncryption() const = 0;
-    virtual KeyValue GetKeyForTestingSignature() const = 0;
 
     virtual ~IPublicKey() {}
 };
 
 template <typename KeyValue>
-class IPrivateKey
+class IPrivateKey : public virtual IBaseKey<KeyValue>
 {
 public:
     virtual KeyValue GetKeyForDecryption() const = 0;
-    virtual KeyValue GetKeyForMakingSignature() const = 0;
 
     virtual ~IPrivateKey() {}
 };
 
-template <typename PublicKeyValue, typename PrivateKeyValue>
-class IKey : public IPublicKey<PublicKeyValue>, public IPrivateKey<PrivateKeyValue>
+template <typename KeyValue>
+class IKey : public IPublicKey<KeyValue>, public IPrivateKey<KeyValue>
 { };
 
+
+/*
+TODO: fix double copy of keys when using generator
+
+Example:
+
+KeyGenerator.Generate();
+key = KeyGenerator.GetPublicKey(); -> 1st copy
+
+in some encryptor:
+key.GetKeyForEncryption(); -> 2nd copy
+*/
 template <typename PublicKey, typename PrivateKey>
 class IKeyGenerator
 {
@@ -43,65 +60,75 @@ public:
     virtual ~IKeyGenerator() {}
 };
 
-template <typename KeyValue>
+template <typename KeyGenerator>
+KeyGenerator MakeKeyGenerator()
+{
+    KeyGenerator keyGen;
+    keyGen.Generate();
+    return keyGen;
+}
+
+template <typename PublicKeyType>
 class IEncryptor
 {
 public:
-    virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<KeyValue>& key) = 0;
-    virtual bool   TestSignature(const blob_t& inputBlob, const IPublicKey<KeyValue>& key) = 0;
+    using public_key_type = PublicKeyType;
+
+    virtual blob_t Encrypt(const blob_t& inputBlob, const PublicKeyType& key) = 0;
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PublicKeyType& key) = 0;
 
     virtual ~IEncryptor() {}
 };
 
-template <typename KeyValue>
+template <typename PrivateKeyType>
 class IDecryptor
 {
 public:
-    virtual blob_t Decrypt(const blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const IPrivateKey<KeyValue>& key) = 0;
+    using private_key_type = PrivateKeyType;
+
+    virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PrivateKeyType& key) = 0;
 
     virtual ~IDecryptor() {}
 };
 
-template <typename PublicKeyValue, typename PrivateKeyValue>
-class ICryptor : public IEncryptor<PublicKeyValue>, public IDecryptor<PrivateKeyValue>
-{};
-
-
-class DummyKey : public IKey<void, void>
+template <typename KeyType>
+class ICryptor : public IEncryptor<KeyType>, public IDecryptor<KeyType>
 {
 public:
-    virtual void GetKeyForEncryption() const override {};
-    virtual void GetKeyForTestingSignature() const override {};
-    virtual void GetKeyForDecryption() const override {};
-    virtual void GetKeyForMakingSignature() const override {};
+    using key_type = KeyType;
 };
 
-class DummyCryptor : public ICryptor<void, void>
+
+class DummyKey : public IKey<int>
 {
 public:
-    virtual blob_t Encrypt(const blob_t& inputBlob, const IPublicKey<void>& key) override 
-    { 
-        static_cast<void>(key); // unused parameter
-        return inputBlob; 
-    }
-    virtual bool   TestSignature(const blob_t& inputBlob, const IPublicKey<void>& key) override 
-    { 
-        static_cast<void>(key); // unused parameters
-        static_cast<void>(inputBlob);
-        
-        return true; 
-    }
+    virtual int GetKeyForEncryption() const override { return 0; };
+    virtual int GetKeyForDecryption() const override { return 0; };
+};
 
-    virtual blob_t Decrypt(const blob_t& inputBlob, const IPrivateKey<void>& key) override 
+class DummyCryptor : public ICryptor<DummyKey>
+{
+public:
+    virtual blob_t Encrypt(const blob_t& inputBlob, const DummyKey& key) override 
     { 
         static_cast<void>(key); // unused parameter
         return inputBlob; 
     }
-    virtual blob_t MakeSignature(const blob_t& inputBlob, const IPrivateKey<void>& key) override
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const DummyKey& key) override 
     { 
         static_cast<void>(key); // unused parameter
-        return inputBlob;
+        return blob_t(inputBlobStart, inputBlobEnd); 
+    }
+    virtual blob_t Decrypt(const blob_t& inputBlob, const DummyKey& key) override 
+    { 
+        static_cast<void>(key); // unused parameter
+        return inputBlob; 
+    }
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const DummyKey& key) override 
+    { 
+        static_cast<void>(key); // unused parameter
+        return blob_t(inputBlobStart, inputBlobEnd); 
     }
 };
 

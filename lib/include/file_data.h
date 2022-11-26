@@ -27,7 +27,7 @@ public:
     InputFileData(const std::string& inputFilePath) :
         m_inputFilePath(inputFilePath) {}
 
-    blob_t Serialize() override
+    blob_t Serialize() const override
     {
         // Discover file size
         auto fileSize = std::filesystem::file_size(m_inputFilePath);
@@ -64,9 +64,9 @@ public:
     OutputFileData(const std::string& outputFilePath) :
         m_outputFile(outputFilePath, std::ios_base::out | std::ios_base::binary) {}
 
-    void Deserialize(blob_t& blob) override
+    void Deserialize(const blob_t& blob) override
     {
-        m_outputFile.write(reinterpret_cast<char*>(&blob[0]), blob.size());
+        m_outputFile.write(reinterpret_cast<const char*>(&blob[0]), blob.size());
     }
 
     virtual ~OutputFileData() {}

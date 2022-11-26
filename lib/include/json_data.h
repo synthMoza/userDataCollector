@@ -19,7 +19,7 @@ public:
     InputJsonData(const nlohmann::json& json) :
         m_json(json) {}
 
-    blob_t Serialize() override
+    blob_t Serialize() const override
     {
         auto jsonString = m_json.dump();
         return blob_t(jsonString.begin(), jsonString.end());
@@ -41,7 +41,7 @@ public:
 
     OutputJsonData() {}
 
-    void Deserialize(blob_t& blob) override
+    void Deserialize(const blob_t& blob) override
     {
         std::string jsonDump(blob.begin(), blob.end());
         m_json = nlohmann::json::parse(jsonDump);

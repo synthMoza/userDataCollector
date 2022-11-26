@@ -18,7 +18,7 @@ public:
      * 
      * @return blob_t containing packed class data
      */
-    virtual blob_t Serialize() = 0;
+    virtual blob_t Serialize() const = 0;
     
     virtual ~ISerializableData() {}
 };
@@ -35,7 +35,7 @@ public:
      * 
      * @param blob input blob with serialized data
      */
-    virtual void Deserialize(blob_t& blob) = 0;
+    virtual void Deserialize(const blob_t& blob) = 0;
     
     virtual ~IDeserializableData() {}
 };
@@ -54,17 +54,26 @@ public:
      * 
      * @return blob_t containing packed class data
      */
-    virtual blob_t Serialize() = 0;
+    virtual blob_t Serialize() const override = 0;
 
     /**
      * @brief Deserialize given blob and put data into this class
      * 
      * @param blob input blob with serialized data
      */
-    virtual void Deserialize(blob_t& blob) = 0;
+    virtual void Deserialize(const blob_t& blob) override = 0;
 
     virtual ~IData() {}
 };
+
+template <typename T>
+using is_serializable = std::enable_if_t<std::is_base_of_v<ISerializableData, T>, bool>;
+
+template <typename T>
+using is_deserializable = std::enable_if_t<std::is_base_of_v<IDeserializableData, T>, bool>;
+
+template <typename T>
+using is_idata = std::enable_if_t<std::is_base_of_v<IData, T>, bool>;
 
 }
 
