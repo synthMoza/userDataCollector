@@ -20,7 +20,8 @@ def plotBenchGraph(name, x, y):
 
 def main():
     # List all benchmarks here
-    benchmarkNames = ['BM_AES128_Encrypt_RandomData', 'BM_AES128_Decrypt_RandomData', 'BM_RSA_Encrypt_RandomData', 'BM_RSA_Decrypt_RandomData']
+    benchmarkNames = ['BM_AES128_Encrypt_RandomData', 'BM_AES128_Decrypt_RandomData', 'BM_RSA_Encrypt_RandomData', 'BM_RSA_Decrypt_RandomData',
+        'BM_DoubleEncryptor_Encrypt_RandomData', 'BM_DoubleEncryptor_Decrypt_RandomData']
 
     if len(sys.argv) != 2:
         print('Error! No input file provided, usage: python analyze_bench.py <input_bench_json>')

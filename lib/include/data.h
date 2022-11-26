@@ -66,6 +66,15 @@ public:
     virtual ~IData() {}
 };
 
+template <typename T>
+using is_serializable = std::enable_if_t<std::is_base_of_v<ISerializableData, T>, bool>;
+
+template <typename T>
+using is_deserializable = std::enable_if_t<std::is_base_of_v<IDeserializableData, T>, bool>;
+
+template <typename T>
+using is_idata = std::enable_if_t<std::is_base_of_v<IData, T>, bool>;
+
 }
 
 #endif // #define DATA_LIB_HEADER

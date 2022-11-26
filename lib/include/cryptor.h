@@ -95,7 +95,7 @@ public:
 template <typename KeyType>
 class ICryptor : public IEncryptor<KeyType>, public IDecryptor<KeyType>
 {
-    public:
+public:
     using key_type = KeyType;
 };
 
