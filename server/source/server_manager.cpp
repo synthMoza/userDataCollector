@@ -15,14 +15,17 @@ ServerManager::ServerManager(io_service& serv) :
 
 std::string ServerManager::GetOwnAddress()
 {
-       boost::asio::io_service server;
-       std::string name = boost::asio::ip::host_name();
-       ip::tcp::resolver res(server);
-       ip::tcp::resolver::iterator it = res.resolve(ip::tcp::resolver::query(name, ""));
+       boost::asio::io_service netService;
+       ip::udp::resolver   resolver(netService);
+       ip::udp::resolver::query query(ip::udp::v4(), "google.com", "");
+       ip::udp::resolver::iterator endpoints = resolver.resolve(query);
+       ip::udp::endpoint ep = *endpoints;
+       ip::udp::socket socket(netService);
+       socket.connect(ep);
+       boost::asio::ip::address addr = socket.local_endpoint().address();
+       std::cout << "My IP according to google is: " << addr.to_string() << std::endl;
 
-       std::string address = it->endpoint().address().to_string();
-
-       return address;
+       return addr.to_string();
 }
 
 udc::blob_t ServerManager::Messaging(ip::tcp::socket& sock)
