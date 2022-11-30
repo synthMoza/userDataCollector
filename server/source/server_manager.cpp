@@ -4,10 +4,11 @@
 
 using namespace udc;
 
-ServerManager::ServerManager(io_service& serv) : 
+ServerManager::ServerManager(io_service& serv, int& port) : 
        m_udpSock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
-       m_acc(serv, ip::tcp::endpoint(ip::tcp::v4(), 8001)),
-       m_endpointBroadcast(ip::address_v4::broadcast(), 2222)
+       m_acc(serv, ip::tcp::endpoint(ip::tcp::v4(), 3333)),
+       m_endpointBroadcast(ip::address_v4::broadcast(), port),
+       m_port(port)
 {
        m_udpSock.set_option(socket_base::broadcast(true));
 }
@@ -60,7 +61,7 @@ void ServerManager::Connect()
 {
        io_service serv;
        Broadcast();
-       m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(GetOwnAddress()), 8009));
+       m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(GetOwnAddress()), m_port));
        std::cout << GetOwnAddress() << std::endl;
 
        while (true)

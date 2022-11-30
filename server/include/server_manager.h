@@ -21,8 +21,10 @@ class ServerManager
        udc::blob_t Messaging(ip::tcp::socket& sock);
        void SendingBroadcast();
        void ProcessMessage();
+
+       int m_port;
 public:
-       ServerManager(io_service& serv);
+       ServerManager(io_service& serv , int& port);
        
        void Connect();
        void Broadcast();

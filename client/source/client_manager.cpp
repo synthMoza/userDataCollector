@@ -6,7 +6,7 @@
 using namespace udc;
 
 ClientManager::ClientManager(io_service& server, int& p) : 
-	m_udpSock(server, ip::udp::endpoint(ip::udp::v4(), 2222)),
+	m_udpSock(server, ip::udp::endpoint(ip::udp::v4(), p)),
 	m_tcpSock(server), 
 	m_port(p)
 {
