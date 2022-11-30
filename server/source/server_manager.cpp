@@ -1,6 +1,7 @@
 #include <server_manager.h>
 
 #include <iostream>
+#include <chrono>
 
 using namespace udc;
 
@@ -98,6 +99,8 @@ void ServerManager::SendingBroadcast()
        std::string add = GetOwnAddress();
        while (true)
        {
+              std::this_thread::sleep_for(std::chrono::seconds(5));
+              std::cout << "SENDING BROADCAST" << std::endl;
               m_udpSock.send_to(boost::asio::buffer(add), m_endpointBroadcast);
        }
 }
