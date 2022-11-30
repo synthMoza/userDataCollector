@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 using namespace udc;
 
@@ -96,10 +97,12 @@ void ServerManager::ProcessMessage()
 
 void ServerManager::SendingBroadcast()
 {
+       using namespace std::chrono_literals;
+       
        std::string add = GetOwnAddress();
        while (true)
        {
-              std::this_thread::sleep_for(std::chrono::seconds(5));
+              std::this_thread::sleep_for(5s);
               std::cout << "SENDING BROADCAST" << std::endl;
               m_udpSock.send_to(boost::asio::buffer(add), m_endpointBroadcast);
        }
