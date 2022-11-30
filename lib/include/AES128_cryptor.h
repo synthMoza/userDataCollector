@@ -83,10 +83,10 @@ public:
 
     AES128_Cryptor();
 
-    virtual blob_t Encrypt(const blob_t& inputBlob, const AES128_Key& key) override;
+    virtual blob_t Encrypt(const blob_t& inputBlob, const AES128_Key& key) { return Encrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key) override;
 
-    virtual blob_t Decrypt(const blob_t& inputBlob, const AES128_Key& key) override;
+    virtual blob_t Decrypt(const blob_t& inputBlob, const AES128_Key& key) { return Decrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key) override;
 };
 

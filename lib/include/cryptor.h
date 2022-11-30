@@ -68,26 +68,26 @@ KeyGenerator MakeKeyGenerator()
     return keyGen;
 }
 
-template <typename PublicKeyType>
+template <typename PublicKey>
 class IEncryptor
 {
 public:
-    using public_key_type = PublicKeyType;
+    using public_key_type = PublicKey;
 
-    virtual blob_t Encrypt(const blob_t& inputBlob, const PublicKeyType& key) = 0;
-    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PublicKeyType& key) = 0;
+    virtual blob_t Encrypt(const blob_t& inputBlob, const PublicKey& key) = 0;
+    virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PublicKey& key) = 0;
 
     virtual ~IEncryptor() {}
 };
 
-template <typename PrivateKeyType>
+template <typename PrivateKey>
 class IDecryptor
 {
 public:
-    using private_key_type = PrivateKeyType;
+    using private_key_type = PrivateKey;
 
-    virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKeyType& key) = 0;
-    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PrivateKeyType& key) = 0;
+    virtual blob_t Decrypt(const blob_t& inputBlob, const PrivateKey& key) = 0;
+    virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const PrivateKey& key) = 0;
 
     virtual ~IDecryptor() {}
 };

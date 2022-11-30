@@ -31,11 +31,6 @@ AES128_Cryptor::AES128_Cryptor() :
     }
 }
 
-blob_t AES128_Cryptor::Encrypt(const blob_t& inputBlob, const AES128_Key& key)
-{
-    return Encrypt(inputBlob.begin(), inputBlob.end(), key);
-}
-
 blob_t AES128_Cryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)
 {
     auto encryptionKey = key.GetKeyForEncryption();
@@ -47,11 +42,6 @@ blob_t AES128_Cryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, cons
 
     m_params.encrypt = 1;
     return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV);
-}
-
-blob_t AES128_Cryptor::Decrypt(const blob_t& inputBlob, const AES128_Key& key)
-{
-    return Decrypt(inputBlob.begin(), inputBlob.end(), key);
 }
 
 blob_t AES128_Cryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)

@@ -6,6 +6,7 @@ set(INCLUDE_DIR include)
 set(SOURCE 
     ${SOURCE_DIR}/AES128_cryptor.cpp
     ${SOURCE_DIR}/RSA_cryptor.cpp
+    ${SOURCE_DIR}/SHA256_hash.cpp
 )
 set(INCLUDE 
     ${INCLUDE_DIR}/cryptor.h
@@ -15,6 +16,11 @@ set(INCLUDE
     ${INCLUDE_DIR}/AES128_cryptor.h
     ${INCLUDE_DIR}/RSA_cryptor.h
     ${INCLUDE_DIR}/double_cryptor.h
+    ${INCLUDE_DIR}/hash.h
+    ${INCLUDE_DIR}/SHA256_hash.h
+    ${INCLUDE_DIR}/signature.h
+    ${INCLUDE_DIR}/hash_based_signature.h
+    ${INCLUDE_DIR}/PGP_cryptor.h
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE} ${INCLUDE})

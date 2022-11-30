@@ -96,21 +96,11 @@ blob_t detail::RSA_CryptoAlgorithm::DoRSA(const blob_const_iterator_t& inputBlob
     return outData;
 }
 
-blob_t RSA_Encryptor::Encrypt(const blob_t& inputBlob, const RSA_PublicKey& key)
-{
-    return Encrypt(inputBlob.begin(), inputBlob.end(), key);
-}
-
 blob_t RSA_Encryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PublicKey& key)
 {
     blob_t blob_key = key.GetKeyForEncryption();
 
     return DoRSA(inputBlobStart, inputBlobEnd, blob_key, false); // encryption
-}
-
-blob_t RSA_Decryptor::Decrypt(const blob_t& inputBlob, const RSA_PrivateKey& key)
-{
-    return Decrypt(inputBlob.begin(), inputBlob.end(), key);
 }
 
 blob_t RSA_Decryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PrivateKey& key)

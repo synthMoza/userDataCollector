@@ -14,12 +14,7 @@ class DoubleDecryptor : public IDecryptor<typename ASymDecryptor::private_key_ty
 public:
     using asym_private_key_type = typename ASymDecryptor::private_key_type;
     using sym_key_type = typename SymCryptor::key_type;
-
-    virtual blob_t Decrypt(const blob_t& inputBlob, const asym_private_key_type& key) override
-    {
-        return Decrypt(inputBlob.begin(), inputBlob.end(), key);
-    }
-
+    virtual blob_t Decrypt(const blob_t& inputBlob, const asym_private_key_type& key)  { return Decrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const asym_private_key_type& key) override
     {
         const size_t symKeySize = *reinterpret_cast<const size_t*>(&(*(inputBlobEnd - sizeof(size_t))));
@@ -45,12 +40,7 @@ public:
     using asym_public_key_type = typename ASymEncryptor::public_key_type;
     using sym_key_type = typename SymCryptor::key_type;
     using double_key_type = std::pair<sym_key_type, asym_public_key_type>;
-
-    virtual blob_t Encrypt(const blob_t& inputBlob, const double_key_type& key) override
-    {
-        return Encrypt(inputBlob.begin(), inputBlob.end(), key);
-    }
-
+    virtual blob_t Encrypt(const blob_t& inputBlob, const double_key_type& key)  { return Encrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const double_key_type& key) override
     {
         SymCryptor symEncryptor;

@@ -87,14 +87,14 @@ public:
 class RSA_Encryptor final : public IEncryptor<RSA_PublicKey>, protected detail::RSA_CryptoAlgorithm
 {
 public:
-    virtual blob_t Encrypt(const blob_t& inputBlob, const RSA_PublicKey& key) override;
+    virtual blob_t Encrypt(const blob_t& inputBlob, const RSA_PublicKey& key) { return Encrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PublicKey& key) override;
 };
 
 class RSA_Decryptor final : public IDecryptor<RSA_PrivateKey>, protected detail::RSA_CryptoAlgorithm
 {
 public:
-    virtual blob_t Decrypt(const blob_t& inputBlob, const RSA_PrivateKey& key) override;
+    virtual blob_t Decrypt(const blob_t& inputBlob, const RSA_PrivateKey& key) { return Decrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PrivateKey& key) override;
 };
 
