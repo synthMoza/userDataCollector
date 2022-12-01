@@ -228,9 +228,16 @@ TEST(PGPCryptor, SimpleEncrypt)
     AES128_KeyGenerator KeyGenAES128;
     KeyGenAES128.Generate();
 
+    using SignatureSHA256RSACreator = HashBasedSignatureCreator<SHA256_Hash, RSA_Encryptor>;
+    using SignatureSHA256RSATester = HashBasedSignaturTester<SHA256_Hash, RSA_Decryptor>;
+    using AES128_RSA_Encryptor = DoubleEncryptor<AES128_Cryptor, RSA_Encryptor>;
+    using AES128_RSA_Decryptor = DoubleDecryptor<AES128_Cryptor, RSA_Decryptor>;
 
-    PGP_Encryptor<HashBasedSignatureCreator<SHA256_Hash, RSA_Encryptor>, DoubleEncryptor<AES128_Cryptor, RSA_Encryptor>> pgpEncryptor;
-    PGP_Decryptor<HashBasedSignaturTester<SHA256_Hash, RSA_Decryptor>, DoubleDecryptor<AES128_Cryptor, RSA_Decryptor>> pgpDecryptor;
+    using AES128_RSA_PGP_EnKey = PGPKeyData<RSA_PublicKey, RSA_PublicKey, AES128_Key>;
+    using AES128_RSA_PGP_DeKey = PGPKeyData<RSA_PrivateKey, RSA_PrivateKey, AES128_Key>;
+
+    PGP_Encryptor<SignatureSHA256RSACreator, AES128_RSA_Encryptor> pgpEncryptor;
+    PGP_Decryptor<SignatureSHA256RSATester, AES128_RSA_Decryptor> pgpDecryptor;
     
     constexpr size_t testDataSize = 100000;
     blob_t testData(testDataSize);
@@ -238,18 +245,18 @@ TEST(PGPCryptor, SimpleEncrypt)
         testData[i] = static_cast<byte_t>(i);
     }
 
-    PGPKeyData<RSA_PublicKey, RSA_PublicKey, AES128_Key> keyForEncryption;
-    PGPKeyData<RSA_PrivateKey, RSA_PrivateKey, AES128_Key> keyForDecryption;
+    AES128_RSA_PGP_EnKey keyForEncryption;
+    AES128_RSA_PGP_DeKey keyForDecryption;
 
 
-    keyForEncryption.m_bunch_of_private_keys.push_back(KeyGenRSA1.GetPublicKey());
-    keyForEncryption.m_bunch_of_public_keys.push_back(KeyGenRSA2.GetPublicKey());
-    keyForEncryption.m_session_key = KeyGenAES128.GetPublicKey();
+    keyForEncryption.m_bunchOfPrivateKeys.push_back(KeyGenRSA1.GetPublicKey());
+    keyForEncryption.m_bunchOfPublicKeys.push_back(KeyGenRSA2.GetPublicKey());
+    keyForEncryption.m_sessionKey = KeyGenAES128.GetPublicKey();
 
     blob_t encryptedData = pgpEncryptor.Encrypt(testData, keyForEncryption);
 
-    keyForDecryption.m_bunch_of_private_keys.push_back(KeyGenRSA2.GetPrivateKey());
-    keyForDecryption.m_bunch_of_public_keys.push_back(KeyGenRSA1.GetPrivateKey());
+    keyForDecryption.m_bunchOfPrivateKeys.push_back(KeyGenRSA2.GetPrivateKey());
+    keyForDecryption.m_bunchOfPublicKeys.push_back(KeyGenRSA1.GetPrivateKey());
 
     EXPECT_EQ(pgpDecryptor.Decrypt(encryptedData, keyForDecryption), testData);
 }
@@ -273,9 +280,9 @@ TEST(PGPCryptor, MediumEncrypt)
     PGPKeyData<RSA_PrivateKey, RSA_PrivateKey, AES128_Key> keyForDecryption;
 
 
-    keyForEncryption.m_bunch_of_private_keys.push_back(KeyGenRSA1.GetPublicKey());
-    keyForEncryption.m_bunch_of_public_keys.push_back(KeyGenRSA2.GetPublicKey());
-    keyForEncryption.m_session_key = KeyGenAES128.GetPublicKey();
+    keyForEncryption.m_bunchOfPrivateKeys.push_back(KeyGenRSA1.GetPublicKey());
+    keyForEncryption.m_bunchOfPublicKeys.push_back(KeyGenRSA2.GetPublicKey());
+    keyForEncryption.m_sessionKey = KeyGenAES128.GetPublicKey();
 
     blob_t encryptedData = pgpEncryptor.Encrypt(testData, keyForEncryption);
 
@@ -286,8 +293,8 @@ TEST(PGPCryptor, MediumEncrypt)
     
     std::cout << std::endl;
 
-    keyForDecryption.m_bunch_of_private_keys.push_back(KeyGenRSA2.GetPrivateKey());
-    keyForDecryption.m_bunch_of_public_keys.push_back(KeyGenRSA1.GetPrivateKey());
+    keyForDecryption.m_bunchOfPrivateKeys.push_back(KeyGenRSA2.GetPrivateKey());
+    keyForDecryption.m_bunchOfPublicKeys.push_back(KeyGenRSA1.GetPrivateKey());
 
     EXPECT_EQ(pgpDecryptor.Decrypt(encryptedData, keyForDecryption), testData);
 }

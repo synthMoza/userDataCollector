@@ -32,12 +32,12 @@ blob_t SHA256_Hash::CalculateHash(const blob_const_iterator_t& inputBlobStart, c
         throw std::runtime_error("Can't calculate SHA256\n");
 
     blob_t hash(EVP_MAX_MD_SIZE);
-    unsigned int length_of_hash = 0;
+    unsigned int lengthOfHash = 0;
 
-    if (!EVP_DigestFinal_ex(m_ctx.get(), &(hash)[0], &length_of_hash))
+    if (!EVP_DigestFinal_ex(m_ctx.get(), &(hash)[0], &lengthOfHash))
         throw std::runtime_error("Can't finish SHA256\n");
 
-    hash.resize(length_of_hash);
+    hash.resize(lengthOfHash);
     hash.shrink_to_fit();
     return hash;
 }
