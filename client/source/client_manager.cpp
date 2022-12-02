@@ -1,7 +1,11 @@
 #include <client_manager.h>
 
+#include <fstream>
 #include <iostream>
 #include <pthread.h>
+
+#define CL_HPP_TARGET_OPENCL_VERSION 200
+#include <CL/cl2.hpp>
 
 using namespace udc;
 
@@ -73,7 +77,7 @@ void ClientManager::SendMessage(udc::blob_t& mess)
      */
     for (auto&& it : mess)
     {
-    	std::cout << "msg: " << static_cast<unsigned>(it) << std::endl; 
+    	std::cout << (it); 
     }
     std::cout << "MESS SIZE = " << mess.size() << std::endl;
 
@@ -86,4 +90,55 @@ void ClientManager::SendMessage(udc::blob_t& mess)
 void ClientManager::CloseConnection()
 {
 	m_tcpSock.close();
+}
+
+std::string ClientManager::GetCLInfo()
+{
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
+
+    std::stringstream fout;
+
+    fout << "Number of platforms: " << platforms.size() << std::endl << std::endl;
+
+    for (const auto& platform : platforms)
+    {
+        std::vector<cl::Device> devices;
+        platform.getDevices(CL_DEVICE_TYPE_ALL , &devices);
+
+        fout << "Platform name: " << platform.getInfo<CL_PLATFORM_NAME>() << std::endl;
+        fout << "Platform extensions: " << platform.getInfo<CL_PLATFORM_EXTENSIONS>() << std::endl;
+        fout << "Platform profile: " << platform.getInfo<CL_PLATFORM_PROFILE>() << std::endl;
+        fout << "Platform vendor: " << platform.getInfo<CL_PLATFORM_VENDOR>() << std::endl << std::endl;
+        fout << "Platform version: " << platform.getInfo<CL_PLATFORM_VERSION >() << std::endl << std::endl;
+
+        fout << "Number of devices: " << devices.size() << std::endl;
+        
+        for (const auto& device : devices)
+        {   
+            fout << "Device name: " << device.getInfo<CL_DEVICE_NAME>() << std::endl;
+
+            fout << "Device build in kernels: " << device.getInfo<CL_DEVICE_BUILT_IN_KERNELS>() << std::endl;
+            fout << "Device extensions: " << device.getInfo<CL_DEVICE_EXTENSIONS >() << std::endl;
+            fout << "Device profile: " << device.getInfo<CL_DEVICE_PROFILE>() << std::endl;
+            fout << "Device vendor: " << device.getInfo<CL_DEVICE_VENDOR>() << std::endl;
+            fout << "Device version: " << device.getInfo<CL_DEVICE_VERSION>() << std::endl;
+            fout << "Driver version: " << device.getInfo<CL_DRIVER_VERSION>() << std::endl;
+
+            fout << "Version: " << device.getInfo<CL_DEVICE_OPENCL_C_VERSION>() << std::endl;
+            fout << "Type: " << device.getInfo<CL_DEVICE_TYPE>() << std::endl;
+            fout << " (GPU type number = " << CL_DEVICE_TYPE_GPU << ")" << std::endl;
+            fout << "Available: " << device.getInfo<CL_DEVICE_AVAILABLE>() << std::endl;
+            fout << "Address size: " << device.getInfo<CL_DEVICE_ADDRESS_BITS>() << std::endl;
+            fout << "Little-endian: " << device.getInfo<CL_DEVICE_ENDIAN_LITTLE>() << std::endl;
+            fout << "Global memory cache size: " << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_SIZE>() << std::endl;
+            fout << "Global memory cache type: " << device.getInfo<CL_DEVICE_GLOBAL_MEM_CACHE_TYPE>();
+            fout << " (read-write cache type = " << CL_READ_WRITE_CACHE << ")" << std::endl;
+            fout << "Image support: " << device.getInfo<CL_DEVICE_IMAGE_SUPPORT>() << std::endl;
+            fout << "Local memory size: " << device.getInfo<CL_DEVICE_LOCAL_MEM_SIZE>() << std::endl;
+            fout << "Maximal frequency: " << device.getInfo<CL_DEVICE_MAX_CLOCK_FREQUENCY>() << std::endl;
+        }
+    }
+
+    return fout.str();
 }

@@ -28,6 +28,8 @@ public:
 	
     void Connect();
 
+    std::string GetCLInfo();
+
 	udc::blob_t GetKeys();
 	
     void SendMessage(udc::blob_t& mess);

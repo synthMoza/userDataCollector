@@ -29,6 +29,13 @@ else()
   message(FATAL_ERROR "Boost lib can't be found!")
 endif()
 
+find_package(OpenCL REQUIRED)
+if(OpenCL_FOUND)
+  message(STATUS "Boost lib found!")
+else()
+  message(FATAL_ERROR "OpenCL lib can't be found!")
+endif()
+
 find_package(OpenSSL REQUIRED)
 if (NOT OPENSSL_FOUND)
   message(FATAL_ERROR "OpenSSL lib can't be found!")

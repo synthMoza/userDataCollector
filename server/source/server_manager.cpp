@@ -26,7 +26,6 @@ std::string ServerManager::GetOwnAddress()
        ip::udp::socket socket(netService);
        socket.connect(ep);
        boost::asio::ip::address addr = socket.local_endpoint().address();
-       std::cout << "My IP according to google is: " << addr.to_string() << std::endl;
 
        return addr.to_string();
 }
@@ -62,9 +61,9 @@ udc::blob_t ServerManager::Messaging(ip::tcp::socket& sock)
 void ServerManager::Connect()
 {
        io_service serv;
-       Broadcast();
-       m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(GetOwnAddress()), m_port));
-       std::cout << GetOwnAddress() << std::endl;
+       std::string addr = GetOwnAddress();
+       std::cout << "My IP : " << addr << std::endl;
+       m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(addr), m_port));
 
        while (true)
        {
@@ -91,7 +90,7 @@ void ServerManager::ProcessMessage()
        //TODO:Encrypt data
        for (auto&& it : m_recData)
        {
-              std::cout << "msg = " << static_cast<unsigned>(it) << std::endl;
+              std::cout << (it);
        }
 }
 
