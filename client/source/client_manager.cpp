@@ -3,11 +3,13 @@
 #include <fstream>
 #include <iostream>
 #include <pthread.h>
+#include "log.h"
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 #include <CL/cl2.hpp>
 
 using namespace udc;
+using namespace mlog;
 
 ClientManager::ClientManager(io_service& server, int& p) : 
 	m_udpSock(server, ip::udp::endpoint(ip::udp::v4(), p)),
@@ -22,9 +24,10 @@ std::string ClientManager::ListenForBroadcast()
     std::string res;
     res.resize(15);
 
-    std::size_t bytes_transferred = m_udpSock.receive_from(boost::asio::buffer(res), m_senderEndpoint);
+    m_udpSock.receive_from(boost::asio::buffer(res), m_senderEndpoint);
 
-    std::cout << "got " << bytes_transferred << " bytes." << std::endl;
+    PrintDataInfo("Get broadcasted address: ");
+
     for (auto&& it : res)
     {
         std::cout << it;
@@ -60,12 +63,14 @@ udc::blob_t ClientManager::GetKeys()
     for_key.resize(key_size[0]);
     m_tcpSock.receive(boost::asio::buffer(for_key));
 
+    PrintDataInfo("Key recieved: ");
+    std::cout << std::endl << "Key size = " << key_size[0] << std::endl;
+
     for (auto&& it : for_key)
     {
-    	std::cout << "key: " << static_cast<unsigned>(it) << std::endl; 
+    	std::cout << static_cast<unsigned>(it); 
     }
-
-    std::cout << "KEY SIZE = " << key_size[0] << std::endl;
+    std::cout << std::endl;
 
     return for_key;
 }
@@ -75,11 +80,15 @@ void ClientManager::SendMessage(udc::blob_t& mess)
 	/*
      * Sending crypted data
      */
+
+    PrintDataInfo("Sending message: ");
+    std::cout << std::endl;
+
     for (auto&& it : mess)
     {
     	std::cout << (it); 
     }
-    std::cout << "MESS SIZE = " << mess.size() << std::endl;
+    std::cout << std::endl  << "Message size = " << mess.size() << std::endl;
 
 	std::array<int, 1> size_data;
 	size_data[0] = mess.size();

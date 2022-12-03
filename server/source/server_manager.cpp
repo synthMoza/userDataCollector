@@ -3,8 +3,10 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include "log.h"
 
 using namespace udc;
+using namespace mlog;
 
 ServerManager::ServerManager(io_service& serv, int& port) : 
        m_udpSock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
@@ -48,7 +50,8 @@ udc::blob_t ServerManager::Messaging(ip::tcp::socket& sock)
         */
        std::array<int, 1> sizes;
        sock.receive(boost::asio::buffer(sizes));
-       std::cout << "SIZE = " << sizes[0] << std::endl;
+       PrintDataInfo("Got message");
+       std::cout << std::endl << "Message's size = " << sizes[0] << std::endl;
 
        //Receieving data
        udc::blob_t for_msg;
@@ -62,7 +65,10 @@ void ServerManager::Connect()
 {
        io_service serv;
        std::string addr = GetOwnAddress();
-       std::cout << "My IP : " << addr << std::endl;
+       std::string forPrint("My IP: " );
+       forPrint = forPrint + addr;
+       PrintDataInfo(forPrint);
+       std::cout << std::endl;
        m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(addr), m_port));
 
        while (true)
@@ -71,7 +77,8 @@ void ServerManager::Connect()
               try
               {
                      m_acc.accept(sock);
-                     std::cout << "CLIENT CONNECTED" << std::endl;
+                     PrintDataInfo("Client connected");
+                     std::cout << std::endl;
               }
               catch (boost::system::system_error& err)
               {
@@ -102,7 +109,9 @@ void ServerManager::SendingBroadcast()
        while (true)
        {
               std::this_thread::sleep_for(5s);
-              std::cout << "SENDING BROADCAST" << std::endl;
+
+              PrintDataInfo("Sending broadcast");
+              std::cout << std::endl;
               m_udpSock.send_to(boost::asio::buffer(add), m_endpointBroadcast);
        }
 }

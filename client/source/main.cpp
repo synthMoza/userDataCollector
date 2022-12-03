@@ -12,7 +12,7 @@ int main()
 	io_service server; // delete me!
 	udc::ClientManager test1(server , t1);
 	info = test1.GetCLInfo();
-	std::cout << info << std::endl;
+	//std::cout << info << std::endl;
 	for (auto&& it : info)
 	{
 		data.push_back(static_cast<int>(it));
