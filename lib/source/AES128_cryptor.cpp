@@ -1,5 +1,5 @@
 #include <AES128_cryptor.h>
-
+#include <thread>
 using namespace udc;
 
 static constexpr size_t AES_256_KEY_SIZE = 32;
@@ -33,7 +33,7 @@ AES128_Cryptor::AES128_Cryptor() :
 
 blob_t AES128_Cryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)
 {
-    auto encryptionKey = key.GetKeyForEncryption();
+    auto encryptionKey = key.GetKey();
     if (encryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
         throw std::length_error("Key is too small");
 
@@ -41,12 +41,12 @@ blob_t AES128_Cryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, cons
     const unsigned char* opensslIV = &(encryptionKey[AES_256_KEY_SIZE]);
 
     m_params.encrypt = 1;
-    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV);
+    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV, m_threads);
 }
 
 blob_t AES128_Cryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key)
 {
-    auto decryptionKey = key.GetKeyForDecryption();
+    auto decryptionKey = key.GetKey();
     if (decryptionKey.size() < AES_256_KEY_SIZE + AES_BLOCKSIZE)
         throw std::length_error("Key is too small");
 
@@ -54,18 +54,58 @@ blob_t AES128_Cryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, cons
     const unsigned char* opensslIV = &(decryptionKey[AES_256_KEY_SIZE]);
 
     m_params.encrypt = 0;
-    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV);
+    return Crypt(inputBlobStart, inputBlobEnd, opensslKey, opensslIV, m_threads);
 }
 
-blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* opensslKey, const unsigned char* opensslIV)
+namespace detail
+{
+    void AES_Crypt_1thr(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, EVP_CIPHER_CTX* ctx, int cipherBlockSize, blob_t& outputBlob)
+    {
+        size_t bytesReadThisStep = 0;
+        size_t inputBlobSize = inputBlobEnd - inputBlobStart;
+        size_t bytesRead = 0;
+        size_t bytesWritten = 0;
+        int outLength = 0;
+        outputBlob.resize((inputBlobSize / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
+        while(true) 
+        {
+            // Read in data in blocks until EOF. Update the ciphering with each read.
+            bytesReadThisStep = inputBlobSize >= BUFSIZE + bytesRead ? BUFSIZE : inputBlobSize - bytesRead;
+
+            if(!EVP_CipherUpdate(ctx, &outputBlob[bytesWritten], &outLength,  &(*(inputBlobStart + bytesRead)), bytesReadThisStep))
+            {
+                std::stringstream stream;
+                stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
+                throw std::runtime_error(stream.str());
+            }
+            
+            bytesWritten += outLength;
+            bytesRead += bytesReadThisStep;
+
+            if (bytesReadThisStep < BUFSIZE)
+                break;
+        }
+
+        if (!EVP_CipherFinal_ex(ctx, &outputBlob[bytesWritten], &outLength)) 
+        {
+            std::stringstream stream;
+            stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
+            throw std::runtime_error(stream.str());
+        }
+
+    bytesWritten += outLength;
+
+        outputBlob.resize(bytesWritten);
+        outputBlob.shrink_to_fit();
+    }
+}
+
+blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* opensslKey, const unsigned char* opensslIV, size_t thread_count)
 {
     /* Allow enough space in output buffer for additional block */
     auto cipherBlockSize = EVP_CIPHER_block_size(m_params.cipherType);
 
     size_t inputBlobSize = inputBlobEnd - inputBlobStart;
-
-    blob_t outBlob;
-    outBlob.resize((inputBlobSize / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
 
     /* Don't set key or IV right away; we want to check lengths */
     if (!EVP_CipherInit_ex(m_ctx.get(), m_params.cipherType, NULL, NULL, NULL, m_params.encrypt))
@@ -86,42 +126,31 @@ blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const 
         throw std::runtime_error(stream.str());
     }
 
-    size_t bytesRead = 0;
-    size_t bytesWritten = 0;
-    size_t bytesReadThisStep = 0;
-    int outLength = 0;
+    int sizePerThread = inputBlobSize / thread_count;
+    int blocksPerThread = sizePerThread / (BUFSIZE) + 1;
 
-    while(true) 
+    std::vector<std::thread> threads;
+    int messageSizeLeft = inputBlobSize;
+    int currentPos = 0;
+    std::vector<blob_t> blobPerThread(thread_count);
+    for (size_t i = 0; i < thread_count; ++i)
     {
-        // Read in data in blocks until EOF. Update the ciphering with each read.
-        bytesReadThisStep = inputBlobSize >= BUFSIZE + bytesRead ? BUFSIZE : inputBlobSize - bytesRead;
+        int sizeForThisThread = std::min(messageSizeLeft, static_cast<int>(blocksPerThread * BUFSIZE));
+        threads.push_back(std::thread(detail::AES_Crypt_1thr, inputBlobStart + currentPos, inputBlobStart + currentPos + sizeForThisThread, m_ctx.get(), cipherBlockSize, std::ref(blobPerThread[i])));
+        messageSizeLeft -= sizeForThisThread;
+        currentPos += sizeForThisThread;
 
-        if(!EVP_CipherUpdate(m_ctx.get(), &outBlob[bytesWritten], &outLength,  &(*(inputBlobStart + bytesRead)), bytesReadThisStep))
-        {
-            std::stringstream stream;
-            stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
-            throw std::runtime_error(stream.str());
-        }
-        
-        bytesWritten += outLength;
-        bytesRead += bytesReadThisStep;
-
-        if (bytesReadThisStep < BUFSIZE)
+        if (messageSizeLeft == 0)
             break;
     }
 
-    /* Now cipher the final block and write it out to file */
-    if (!EVP_CipherFinal_ex(m_ctx.get(), &outBlob[bytesWritten], &outLength)) 
-    {
-        std::stringstream stream;
-        stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
-        throw std::runtime_error(stream.str());
+    blob_t outData;
+
+    for (size_t i = 0; i < threads.size(); i++) {
+        threads[i].join();
+        if (!blobPerThread[i].empty())
+            outData.insert(outData.end(), blobPerThread[i].begin(), blobPerThread[i].end());
     }
 
-    bytesWritten += outLength;
-
-    outBlob.resize(bytesWritten);
-    outBlob.shrink_to_fit();
-
-    return outBlob;
+    return outData;
 }

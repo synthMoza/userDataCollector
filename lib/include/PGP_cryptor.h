@@ -47,6 +47,7 @@ public:
         size_t privateId = detail::GenerateRandomNumber(key.m_bunchOfPrivateKeys.size());
         blob_t blobSignature = m_signCreator.CreateSignature(inputBlobStart, inputBlobEnd, key.m_bunchOfPrivateKeys[privateId]);
         size_t signatureSize = blobSignature.size();
+        std::cout << "Signature created\n";
 
         blob_t signedBlob = blob_t(reinterpret_cast<byte_t*>(&privateId), reinterpret_cast<byte_t*>(&privateId) + sizeof(size_t) / sizeof(byte_t));
         blob_t signatureSizeBlob = blob_t(reinterpret_cast<byte_t*>(&signatureSize), reinterpret_cast<byte_t*>(&signatureSize) + sizeof(size_t) / sizeof(byte_t));
@@ -58,6 +59,8 @@ public:
         blob_t output = blob_t(reinterpret_cast<byte_t*>(&publicId), reinterpret_cast<byte_t*>(&publicId) + sizeof(size_t) / sizeof(byte_t));
         blob_t encryptedData = m_doubleEncryptor.Encrypt(signedBlob, { key.m_sessionKey, key.m_bunchOfPublicKeys[publicId] });
         output.insert(output.end(), encryptedData.begin(), encryptedData.end());
+
+        std::cout << "Message encrypted\n";
         return output;
     }
 };

@@ -30,11 +30,7 @@ public:
     {
         m_key = new_key;
     }
-    virtual blob_t GetKeyForEncryption() const override 
-    {
-        return m_key;
-    }
-    virtual blob_t GetKeyForDecryption() const override 
+    virtual blob_t GetKey() const override 
     {
         return m_key;
     }
@@ -77,8 +73,8 @@ class AES128_Cryptor : public ICryptor<AES128_Key>
         unsigned encrypt;
         const EVP_CIPHER* cipherType;
     } m_params;
-
-    blob_t Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* openssl_key, const unsigned char* openssl_iv);
+    size_t m_threads = 1;
+    blob_t Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* openssl_key, const unsigned char* openssl_iv, size_t thread_count);
 public:
 
     AES128_Cryptor();
@@ -88,6 +84,8 @@ public:
 
     virtual blob_t Decrypt(const blob_t& inputBlob, const AES128_Key& key) { return Decrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key) override;
+
+    void SetThreadsCount(size_t threads) { m_threads = threads; }
 };
 
 }
