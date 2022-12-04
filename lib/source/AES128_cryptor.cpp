@@ -85,16 +85,6 @@ namespace detail
             if (bytesReadThisStep < BUFSIZE)
                 break;
         }
-
-        if (!EVP_CipherFinal_ex(ctx, &outputBlob[bytesWritten], &outLength)) 
-        {
-            std::stringstream stream;
-            stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
-            throw std::runtime_error(stream.str());
-        }
-
-    bytesWritten += outLength;
-
         outputBlob.resize(bytesWritten);
         outputBlob.shrink_to_fit();
     }
@@ -126,8 +116,11 @@ blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const 
         throw std::runtime_error(stream.str());
     }
 
+    size_t bytesWritten = 0;
+    int outLength = 0;
+
     int sizePerThread = inputBlobSize / thread_count;
-    int blocksPerThread = sizePerThread / (BUFSIZE) + 1;
+    int blocksPerThread = sizePerThread / BUFSIZE + 1;
 
     std::vector<std::thread> threads;
     int messageSizeLeft = inputBlobSize;
@@ -151,6 +144,20 @@ blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const 
         if (!blobPerThread[i].empty())
             outData.insert(outData.end(), blobPerThread[i].begin(), blobPerThread[i].end());
     }
+    bytesWritten = outData.size();
+    outData.resize((inputBlobSize / BUFSIZE + 1) * (BUFSIZE + static_cast<size_t>(cipherBlockSize)));
+    /* Now cipher the final block and write it out to file */
+    if (!EVP_CipherFinal_ex(m_ctx.get(), &outData[bytesWritten], &outLength)) 
+    {
+        std::stringstream stream;
+        stream << __PRETTY_FUNCTION__ << ":" << __LINE__ << "; " << ERR_error_string(ERR_get_error(), NULL);
+        throw std::runtime_error(stream.str());
+    }
+
+    bytesWritten += outLength;
+
+    outData.resize(bytesWritten);
+    outData.shrink_to_fit();
 
     return outData;
 }
