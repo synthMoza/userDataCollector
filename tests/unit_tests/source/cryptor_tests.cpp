@@ -7,6 +7,8 @@
 #include <SHA256_hash.h>
 #include <hash_based_signature.h>
 #include <PGP_cryptor.h>
+#include <iostream>
+#include <fstream>
 
 using namespace udc;
 
@@ -46,7 +48,7 @@ TEST(AES128_Cryptor, MediumEncrypt)
     AES128_KeyGenerator KeyGen;
     KeyGen.Generate();
     AES128_Cryptor AES_128_Cryptor{};
-    constexpr size_t testDataSize = 1000000;
+    constexpr size_t testDataSize = 1000000000;
     blob_t testData(testDataSize);
     for (size_t i = 0; i < testDataSize; ++i) {
         testData[i] = static_cast<byte_t>(i);
@@ -62,8 +64,8 @@ TEST(AES128_Cryptor, MediumEncryptThreads)
     AES128_KeyGenerator KeyGen;
     KeyGen.Generate();
     AES128_Cryptor AES_128_Cryptor{};
-    AES_128_Cryptor.SetThreadsCount(4);
-    constexpr size_t testDataSize = 1000000;
+    AES_128_Cryptor.SetThreadsCount(8);
+    constexpr size_t testDataSize = 1000000000;
     blob_t testData(testDataSize);
     for (size_t i = 0; i < testDataSize; ++i) {
         testData[i] = static_cast<byte_t>(i);

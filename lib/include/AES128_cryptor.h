@@ -64,8 +64,20 @@ public:
 
 };
 
+namespace detail
+{
+void Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key, blob_t& outputBlob);
+
+void Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key, blob_t& outputBlob);
+
+}
+
+
 class AES128_Cryptor : public ICryptor<AES128_Key>
 {
+    friend void detail::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key, blob_t& outputBlob);
+    friend void detail::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const AES128_Key& key, blob_t& outputBlob);
+
     std::unique_ptr<EVP_CIPHER_CTX, decltype(&EVP_CIPHER_CTX_reset)> m_ctx;
     
     struct CipherParams 
@@ -74,7 +86,7 @@ class AES128_Cryptor : public ICryptor<AES128_Key>
         const EVP_CIPHER* cipherType;
     } m_params;
     size_t m_threads = 1;
-    blob_t Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* openssl_key, const unsigned char* openssl_iv, size_t thread_count);
+    blob_t Crypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const unsigned char* openssl_key, const unsigned char* openssl_iv);
 public:
 
     AES128_Cryptor();
