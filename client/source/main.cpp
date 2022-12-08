@@ -18,7 +18,7 @@ int main()
 	//	data.push_back(static_cast<int>(it));
 	//}
 	//test1.Connect();
-	//test1.GetKeys();
+	//test1.GetMessagge();
 	//TODO: crypt
 	//test1.SendMessage(data);
 	//test1.CloseConnection();

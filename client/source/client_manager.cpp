@@ -52,7 +52,7 @@ void ClientManager::Connect()
     }
 }
 
-udc::blob_t ClientManager::GetKeys()
+udc::blob_t ClientManager::GetMessagge()
 {
 	
 	 * Recieving Keys

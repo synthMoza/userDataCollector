@@ -30,7 +30,7 @@ public:
 
     std::string GetCLInfo();
 
-	udc::blob_t GetKeys();
+	udc::blob_t GetMessagge();
 	
     void SendMessage(udc::blob_t& mess);
 	
