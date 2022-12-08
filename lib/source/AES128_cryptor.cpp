@@ -144,7 +144,6 @@ blob_t AES128_Cryptor::Crypt(const blob_const_iterator_t& inputBlobStart, const 
     bytesWritten += outLength;
 
     outputBlob.resize(bytesWritten);
-    outputBlob.shrink_to_fit();
 
     return outputBlob;
 }

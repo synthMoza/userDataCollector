@@ -49,7 +49,7 @@ public:
         blob_t output = m_symEncryptor.Encrypt(inputBlobStart, inputBlobEnd, key.first);
 
         blob_t encryptedKey = m_asymEncryptor.Encrypt(key.first.Serialize(), key.second);
-
+        output.reserve(output.size() + encryptedKey.size() + sizeof(size_t));
         output.insert(output.end(), encryptedKey.begin(), encryptedKey.end());
 
         size_t encryptedKeySize = encryptedKey.size();

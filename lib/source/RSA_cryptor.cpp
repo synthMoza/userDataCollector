@@ -90,7 +90,6 @@ void detail::DoRSA_1thr(const blob_const_iterator_t& inputBlobStart, const blob_
         currentOutDataSize += writtenSize;
     }
     outputBlob.resize(currentOutDataSize);
-    outputBlob.shrink_to_fit();
 }
 
 blob_t detail::RSA_CryptoAlgorithm::DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt)
