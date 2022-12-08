@@ -71,25 +71,34 @@ void ServerManager::Messaging(int& n)
 
 void ServerManager::SendMessage(int& n, blob_t& mess)
 {
+       size_t size = mess.size();
+       PrintDataInfo("Sending message\n");
+       auto str = std::string("Message size = ") + std::to_string(mess.size()) + "\n";
+       PrintDataInfo(str);
 
-       std::array<int, 1> sizes_send;
-       sizes_send[0] = mess.size();
+       for (auto&& ch : mess)
+              std::cout << ch;
+       std::cout << std::endl;
 
-       sockets[n].send(boost::asio::buffer(sizes_send));
+       sockets[n].send(boost::asio::buffer(&size, sizeof(size)));
        sockets[n].send(boost::asio::buffer(mess));
 }
 
 blob_t ServerManager::ReciveMessage(int& n)
 {
-       std::array<int, 1> sizes;
-       sockets[n].receive(boost::asio::buffer(sizes));
+       size_t size = 0;
+       sockets[n].receive(boost::asio::buffer(&size, sizeof(size)));
        PrintDataInfo("Got message");
-       std::cout << std::endl << "Message's size = " << sizes[0] << std::endl;
+       std::cout << std::endl << "Message's size = " << size << std::endl;
 
        //Receieving data
        blob_t for_msg;
-       for_msg.resize(sizes[0]);
+       for_msg.resize(size);
        sockets[n].receive(boost::asio::buffer(for_msg));
+
+       for (auto&& ch : for_msg)
+              std::cout << ch;
+       std::cout << std::endl;
 
        return for_msg;
 }
@@ -115,7 +124,6 @@ void ServerManager::Connect()
               m_acc.listen(socket_base::max_connections, ec);
               try
               {
-                     ip::tcp::socket m_tcpSock(serv);
                      sockets.emplace_back(serv);
                      m_acc.accept(sockets.back());
                      PrintDataInfo("Client connected");
