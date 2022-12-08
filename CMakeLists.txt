@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -Wno-deprecated -Wno-deprecated-declarations") # TODO: remove -Wno-deprecated -Wno-deprecated-declarations
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 # check if given variables are correct
 if ((DEFINED WITH_PERF_TESTS) AND (NOT DEFINED WITH_TESTS))
