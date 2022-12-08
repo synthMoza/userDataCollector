@@ -8,33 +8,12 @@ namespace udc
 {
 
 template <typename KeyValue>
-class IBaseKey
+class IKey
 {
 public:
     virtual void SetKey(const KeyValue& value) { static_cast<void>(value); };
+    virtual KeyValue GetKey() const = 0;
 };
-
-template <typename KeyValue>
-class IPublicKey : public virtual IBaseKey<KeyValue>
-{
-public:
-    virtual KeyValue GetKeyForEncryption() const = 0;
-
-    virtual ~IPublicKey() {}
-};
-
-template <typename KeyValue>
-class IPrivateKey : public virtual IBaseKey<KeyValue>
-{
-public:
-    virtual KeyValue GetKeyForDecryption() const = 0;
-
-    virtual ~IPrivateKey() {}
-};
-
-template <typename KeyValue>
-class IKey : public IPublicKey<KeyValue>, public IPrivateKey<KeyValue>
-{ };
 
 
 /*
@@ -48,7 +27,7 @@ key = KeyGenerator.GetPublicKey(); -> 1st copy
 in some encryptor:
 key.GetKeyForEncryption(); -> 2nd copy
 */
-template <typename PublicKey, typename PrivateKey>
+template <typename PublicKey, typename PrivateKey = PublicKey>
 class IKeyGenerator
 {
 public:
@@ -103,8 +82,7 @@ public:
 class DummyKey : public IKey<int>
 {
 public:
-    virtual int GetKeyForEncryption() const override { return 0; };
-    virtual int GetKeyForDecryption() const override { return 0; };
+    virtual int GetKey() const override { return 0; }
 };
 
 class DummyCryptor : public ICryptor<DummyKey>

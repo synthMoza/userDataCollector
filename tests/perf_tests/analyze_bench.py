@@ -15,7 +15,10 @@ def plotBenchGraph(name, x, y):
     plt.title(newName + ', time dependency on size')
     plt.minorticks_on()
     plt.autoscale()
-    plt.xlabel("size, bytes", fontsize=10)
+    if name == 'BM_AES128_Decrypt_RandomDataThreads':
+        plt.xlabel("number of threads", fontsize=10)
+    else:
+        plt.xlabel("size, bytes", fontsize=10)
     plt.ylabel("time, ns", fontsize=10)
     plt.plot(x, y, 'bo')
     plt.plot(x, y, 'r--')
@@ -24,7 +27,7 @@ def plotBenchGraph(name, x, y):
 def main():
     # List all benchmarks here
     benchmarkNames = ['BM_AES128_Encrypt_RandomData', 'BM_AES128_Decrypt_RandomData', 'BM_RSA_Encrypt_RandomData', 'BM_RSA_Decrypt_RandomData',
-        'BM_DoubleEncryptor_Encrypt_RandomData', 'BM_DoubleEncryptor_Decrypt_RandomData']
+        'BM_DoubleEncryptor_Encrypt_RandomData', 'BM_DoubleEncryptor_Decrypt_RandomData', 'BM_AES128_Decrypt_RandomDataThreads']
 
     if len(sys.argv) != 2:
         print('Error! No input file provided, usage: python analyze_bench.py <input_bench_json>')

@@ -6,7 +6,8 @@
 #include "log.h"
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
-#include <CL/cl2.hpp>
+/*
+#include <CL/cl>
 
 using namespace udc;
 using namespace mlog;
@@ -53,9 +54,9 @@ void ClientManager::Connect()
 
 udc::blob_t ClientManager::GetKeys()
 {
-	/*
+	
 	 * Recieving Keys
-	 */
+	 
     std::array<int, 1> key_size;
     m_tcpSock.receive(boost::asio::buffer(key_size));
 
@@ -77,9 +78,9 @@ udc::blob_t ClientManager::GetKeys()
 
 void ClientManager::SendMessage(udc::blob_t& mess)
 {
-	/*
+	
      * Sending crypted data
-     */
+     
 
     PrintDataInfo("Sending message: ");
     std::cout << std::endl;
@@ -151,3 +152,4 @@ std::string ClientManager::GetCLInfo()
 
     return fout.str();
 }
+*/

@@ -1,5 +1,6 @@
 #include <RSA_cryptor.h>
 #include <iostream>
+#include <thread>
 
 using namespace udc;
 
@@ -52,23 +53,20 @@ RSA* detail::RSA_CryptoAlgorithm::CreateRSA(const blob_t& key, bool decrypt)
     return rsa;
 }
 
-blob_t detail::RSA_CryptoAlgorithm::DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt)
+void detail::DoRSA_1thr(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA* rsa, blob_t& outputBlob, bool decrypt)
 {
-    RSA * rsa = CreateRSA(key, decrypt);
-    size_t blockSize;
-    blob_t outData;
-    
+    size_t blockSize; 
     size_t inputBlobSize = inputBlobEnd - inputBlobStart;
 
     if (decrypt)
     { // while using RSA_PKCS1_OAEP_PADDING, block size should be RSA_size(rsa) for decryption
         blockSize = RSA_size(rsa);
-        outData.resize((blockSize) * (inputBlobSize / (blockSize) + 1));
+        outputBlob.resize((blockSize) * (inputBlobSize / (blockSize) + 1));
     }
     else
     { // and RSA_size(rsa) - 42 for encryption
         blockSize = RSA_size(rsa) - 42;
-        outData.resize((blockSize + 42) * (inputBlobSize / (blockSize) + 1));
+        outputBlob.resize((blockSize + 42) * (inputBlobSize / (blockSize) + 1));
     }
 
     size_t currentOutDataSize = 0;
@@ -79,33 +77,77 @@ blob_t detail::RSA_CryptoAlgorithm::DoRSA(const blob_const_iterator_t& inputBlob
         int writtenSize = 0;
         if (!decrypt) 
         {
-            writtenSize = RSA_public_encrypt(processingLen, &(*(inputBlobStart + blockStart)), &outData[currentOutDataSize], rsa, RSA_PKCS1_OAEP_PADDING);
+            writtenSize = RSA_public_encrypt(processingLen, &(*(inputBlobStart + blockStart)), &outputBlob[currentOutDataSize], const_cast<RSA*>(rsa), RSA_PKCS1_OAEP_PADDING);
             if (writtenSize == -1)
                 throw std::runtime_error("Unable to encrypt\n");
         }
         else 
         {
-            writtenSize = RSA_private_decrypt(processingLen, &(*(inputBlobStart + blockStart)), &outData[currentOutDataSize], rsa, RSA_PKCS1_OAEP_PADDING);
+            writtenSize = RSA_private_decrypt(processingLen, &(*(inputBlobStart + blockStart)), &outputBlob[currentOutDataSize], const_cast<RSA*>(rsa), RSA_PKCS1_OAEP_PADDING);
             if (writtenSize == -1)
                 throw std::runtime_error("Unable to decrypt\n");
         }
         currentOutDataSize += writtenSize;
     }
-    outData.resize(currentOutDataSize);
-    outData.shrink_to_fit();
+    outputBlob.resize(currentOutDataSize);
+    outputBlob.shrink_to_fit();
+}
+
+blob_t detail::RSA_CryptoAlgorithm::DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt, size_t thread_count)
+{
+    RSA * rsa = CreateRSA(key, decrypt);
+    std::vector<blob_t> blobPerThread(thread_count);
+
+    int inputBlobSize = inputBlobEnd - inputBlobStart;
+    int blockSize = 0;
+    if (decrypt)
+    { // while using RSA_PKCS1_OAEP_PADDING, block size should be RSA_size(rsa) for decryption
+        blockSize = RSA_size(rsa);
+    }
+    else
+    { // and RSA_size(rsa) - 42 for encryption
+        blockSize = RSA_size(rsa) - 42;
+    }
+
+    int sizePerThread = inputBlobSize / thread_count;
+    int blocksPerThread = sizePerThread / blockSize + 1;
+
+    std::vector<std::thread> threads;
+    int messageSizeLeft = inputBlobSize;
+    int currentPos = 0;
+
+    for (size_t i = 0; i < thread_count; ++i)
+    {
+        int sizeForThisThread = std::min(messageSizeLeft, blocksPerThread * blockSize);
+        threads.push_back(std::thread(DoRSA_1thr, inputBlobStart + currentPos, inputBlobStart + currentPos + sizeForThisThread, rsa, std::ref(blobPerThread[i]), decrypt));
+        messageSizeLeft -= sizeForThisThread;
+        currentPos += sizeForThisThread;
+
+        if (messageSizeLeft == 0)
+            break;
+    }
+
+    blob_t outData;
+
+    for (size_t i = 0; i < threads.size(); i++) {
+        threads[i].join();
+        if (!blobPerThread[i].empty())
+            outData.insert(outData.end(), blobPerThread[i].begin(), blobPerThread[i].end());
+    }
+
     return outData;
 }
 
-blob_t RSA_Encryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PublicKey& key)
+blob_t RSA_Encryptor::Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_Key& key)
 {
-    blob_t blob_key = key.GetKeyForEncryption();
+    blob_t blob_key = key.GetKey();
 
-    return DoRSA(inputBlobStart, inputBlobEnd, blob_key, false); // encryption
+    return DoRSA(inputBlobStart, inputBlobEnd, blob_key, false, m_threads); // encryption
 }
 
-blob_t RSA_Decryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_PrivateKey& key)
+blob_t RSA_Decryptor::Decrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const RSA_Key& key)
 {
-    blob_t blob_key = key.GetKeyForDecryption();
+    blob_t blob_key = key.GetKey();
 
-    return DoRSA(inputBlobStart, inputBlobEnd, blob_key, true); // decryption
+    return DoRSA(inputBlobStart, inputBlobEnd, blob_key, true, m_threads); // decryption
 }

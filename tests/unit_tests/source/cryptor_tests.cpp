@@ -7,6 +7,8 @@
 #include <SHA256_hash.h>
 #include <hash_based_signature.h>
 #include <PGP_cryptor.h>
+#include <iostream>
+#include <fstream>
 
 using namespace udc;
 
@@ -46,7 +48,24 @@ TEST(AES128_Cryptor, MediumEncrypt)
     AES128_KeyGenerator KeyGen;
     KeyGen.Generate();
     AES128_Cryptor AES_128_Cryptor{};
-    constexpr size_t testDataSize = 10000;
+    constexpr size_t testDataSize = 1000000000;
+    blob_t testData(testDataSize);
+    for (size_t i = 0; i < testDataSize; ++i) {
+        testData[i] = static_cast<byte_t>(i);
+    }
+    
+    blob_t encryptedData = AES_128_Cryptor.Encrypt(testData, KeyGen.GetPublicKey());
+
+    EXPECT_EQ(AES_128_Cryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
+}
+
+TEST(AES128_Cryptor, MediumEncryptThreads)
+{
+    AES128_KeyGenerator KeyGen;
+    KeyGen.Generate();
+    AES128_Cryptor AES_128_Cryptor{};
+    AES_128_Cryptor.SetThreadsCount(8);
+    constexpr size_t testDataSize = 1000000000;
     blob_t testData(testDataSize);
     for (size_t i = 0; i < testDataSize; ++i) {
         testData[i] = static_cast<byte_t>(i);
@@ -86,7 +105,7 @@ TEST(RSA_Cryptor, MediumEncrypt)
     
     RSA_Encryptor RSA_encryptor;
     RSA_Decryptor RSA_decryptor;
-    constexpr size_t testDataSize = 100000;
+    constexpr size_t testDataSize = 1000000;
     blob_t testData(testDataSize);
     for (size_t i = 0; i < testDataSize; ++i) {
         testData[i] = static_cast<byte_t>(i);
@@ -97,6 +116,25 @@ TEST(RSA_Cryptor, MediumEncrypt)
     EXPECT_EQ(RSA_decryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
 }
 
+TEST(RSA_Cryptor, MediumEncryptThreads)
+{
+    RSA_KeyGenerator KeyGen;
+    KeyGen.Generate();
+    
+    RSA_Encryptor RSA_encryptor;
+    RSA_encryptor.SetThreadsCount(3);
+    RSA_Decryptor RSA_decryptor;
+    RSA_decryptor.SetThreadsCount(4);
+    constexpr size_t testDataSize = 1000000;
+    blob_t testData(testDataSize);
+    for (size_t i = 0; i < testDataSize; ++i) {
+        testData[i] = static_cast<byte_t>(i);
+    }
+    
+    blob_t encryptedData = RSA_encryptor.Encrypt(testData, KeyGen.GetPublicKey());
+
+    EXPECT_EQ(RSA_decryptor.Decrypt(encryptedData, KeyGen.GetPrivateKey()), testData);
+}
 
 TEST(DoubleCryptor, SimpleEncrypt)
 {
@@ -111,7 +149,7 @@ TEST(DoubleCryptor, SimpleEncrypt)
     
     blob_t testData = {0x1, 0x2, 0x3, 0x4, 0x5};
 
-    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_PublicKey>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
+    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_Key>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
 
     std::cout << "Encrypted array: ";
 
@@ -140,7 +178,7 @@ TEST(DoubleCryptor, MediumEncrypt)
         testData[i] = static_cast<byte_t>(i);
     }
 
-    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_PublicKey>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
+    blob_t encryptedData = doubleEncryptor.Encrypt(testData, std::pair<AES128_Key, RSA_Key>(KeyGenAES128.GetPublicKey(), KeyGenRSA.GetPublicKey()));
 
     EXPECT_EQ(doubleDecryptor.Decrypt(encryptedData, KeyGenRSA.GetPrivateKey()), testData);
 }
@@ -219,7 +257,7 @@ TEST(HashBasedSignature, MediumSignature)
     EXPECT_EQ(hashTester.CheckSignature(testData, signature, KeyGenRSA.GetPrivateKey()), true);
 }
 
-TEST(PGPCryptor, SimpleEncrypt)
+TEST(PGPCryptor, MediumEncrypt)
 {
     RSA_KeyGenerator KeyGenRSA1, KeyGenRSA2;
     KeyGenRSA1.Generate();
@@ -233,8 +271,8 @@ TEST(PGPCryptor, SimpleEncrypt)
     using AES128_RSA_Encryptor = DoubleEncryptor<AES128_Cryptor, RSA_Encryptor>;
     using AES128_RSA_Decryptor = DoubleDecryptor<AES128_Cryptor, RSA_Decryptor>;
 
-    using AES128_RSA_PGP_EnKey = PGPKeyData<RSA_PublicKey, RSA_PublicKey, AES128_Key>;
-    using AES128_RSA_PGP_DeKey = PGPKeyData<RSA_PrivateKey, RSA_PrivateKey, AES128_Key>;
+    using AES128_RSA_PGP_EnKey = PGPKeyData<RSA_Key, RSA_Key, AES128_Key>;
+    using AES128_RSA_PGP_DeKey = PGPKeyData<RSA_Key, RSA_Key, AES128_Key>;
 
     PGP_Encryptor<SignatureSHA256RSACreator, AES128_RSA_Encryptor> pgpEncryptor;
     PGP_Decryptor<SignatureSHA256RSATester, AES128_RSA_Decryptor> pgpDecryptor;
@@ -261,7 +299,7 @@ TEST(PGPCryptor, SimpleEncrypt)
     EXPECT_EQ(pgpDecryptor.Decrypt(encryptedData, keyForDecryption), testData);
 }
 
-TEST(PGPCryptor, MediumEncrypt)
+TEST(PGPCryptor, SimpleEncrypt)
 {
     RSA_KeyGenerator KeyGenRSA1, KeyGenRSA2;
     KeyGenRSA1.Generate();
@@ -276,8 +314,8 @@ TEST(PGPCryptor, MediumEncrypt)
     
     blob_t testData = {0x1, 0x2, 0x3, 0x4, 0x5};
 
-    PGPKeyData<RSA_PublicKey, RSA_PublicKey, AES128_Key> keyForEncryption;
-    PGPKeyData<RSA_PrivateKey, RSA_PrivateKey, AES128_Key> keyForDecryption;
+    PGPKeyData<RSA_Key, RSA_Key, AES128_Key> keyForEncryption;
+    PGPKeyData<RSA_Key, RSA_Key, AES128_Key> keyForDecryption;
 
 
     keyForEncryption.m_bunchOfPrivateKeys.push_back(KeyGenRSA1.GetPublicKey());
