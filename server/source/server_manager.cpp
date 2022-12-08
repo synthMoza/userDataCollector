@@ -12,7 +12,8 @@ ServerManager::ServerManager(io_service& serv, int& port) :
        m_udpSock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
        m_acc(serv, ip::tcp::endpoint(ip::tcp::v4(), 3333)),
        m_endpointBroadcast(ip::address_v4::broadcast(), port),
-       m_port(port)
+       m_port(port),
+       is_end(false)
 {
        m_udpSock.set_option(socket_base::broadcast(true));
 }
@@ -32,33 +33,47 @@ std::string ServerManager::GetOwnAddress()
        return addr.to_string();
 }
 
-udc::blob_t ServerManager::Messaging(ip::tcp::socket& sock)
+void ServerManager::Messaging(int& n)
 {
-       /*
-        * Sending keys for crypting
-        */
-       udc::blob_t keys = {1 , 2 , 3 , 4 , 5};
+       /*Here you should write some memore(sending or recieving message)*/
+       blob_t data = {1 , 2 , 3 , 4 , 5};
+       SendMessage(n, data);
+       data = ReciveMessage(n);
+       for (auto&& it : data)
+       {
+              std::cout << it;
+       }
+       sockets[n].close();
+}
+
+void ServerManager::SendMessage(int& n, blob_t& mess)
+{
 
        std::array<int, 1> sizes_send;
-       sizes_send[0] = keys.size();
+       sizes_send[0] = mess.size();
 
-       sock.send(boost::asio::buffer(sizes_send));
-       sock.send(boost::asio::buffer(keys));
+       sockets[n].send(boost::asio::buffer(sizes_send));
+       sockets[n].send(boost::asio::buffer(mess));
+}
 
-       /*
-        * Rececieving size of data
-        */
+blob_t ServerManager::ReciveMessage(int& n)
+{
        std::array<int, 1> sizes;
-       sock.receive(boost::asio::buffer(sizes));
+       sockets[n].receive(boost::asio::buffer(sizes));
        PrintDataInfo("Got message");
        std::cout << std::endl << "Message's size = " << sizes[0] << std::endl;
 
        //Receieving data
-       udc::blob_t for_msg;
+       blob_t for_msg;
        for_msg.resize(sizes[0]);
-       sock.receive(boost::asio::buffer(for_msg));
+       sockets[n].receive(boost::asio::buffer(for_msg));
 
        return for_msg;
+}
+
+void ServerManager::close()
+{
+       is_end = true;
 }
 
 void ServerManager::Connect()
@@ -73,21 +88,30 @@ void ServerManager::Connect()
 
        while (true)
        {
-              ip::tcp::socket sock(serv);
+              boost::system::error_code ec;
+              m_acc.listen(socket_base::max_connections, ec);
               try
               {
-                     m_acc.accept(sock);
+                     ip::tcp::socket m_tcpSock(serv);
+                     sockets.emplace_back(serv);
+                     m_acc.accept(sockets.back());
                      PrintDataInfo("Client connected");
+                     int n = sockets.size() - 1;
+                     clients.push_back(std::thread(&ServerManager::Messaging, this, std::ref(n)));
                      std::cout << std::endl;
               }
               catch (boost::system::system_error& err)
               {
                      std::cout << err.what() << std::endl;
-              }
-              m_recData = Messaging(sock);        
-              ProcessMessage();
-              sock.close();
-
+              }   
+              if (is_end)
+              {
+                     break;
+              }     
+       }
+       for (auto&& it : clients)
+       {
+              it.join();
        }
 }
 

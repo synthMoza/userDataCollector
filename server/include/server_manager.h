@@ -3,6 +3,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
+#include <vector>
+#include <thread>
 #include "types.h"
 
 namespace udc
@@ -18,17 +20,23 @@ class ServerManager
        udc::blob_t m_recData;
 
        std::string GetOwnAddress();
-       udc::blob_t Messaging(ip::tcp::socket& sock);
+       void Messaging(int& n);
        void SendingBroadcast();
        void ProcessMessage();
+       blob_t ReciveMessage(int& n);
+       void SendMessage(int& n, blob_t& mess);
 
        int m_port;
+       bool is_end;
+       std::vector<ip::tcp::socket> sockets;
+       std::vector<std::thread> clients;
 public:
        ServerManager(io_service& serv , int& port);
        
        void Connect();
        void Broadcast();
        udc::blob_t GetRecData()  { return m_recData; }
+       void close();
 
        ~ServerManager() {};
 };
