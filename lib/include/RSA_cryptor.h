@@ -78,7 +78,7 @@ class RSA_CryptoAlgorithm
 
 public:
 
-    blob_t DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt = false, size_t thread_count = 1);
+    blob_t DoRSA(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const blob_t& key, bool decrypt = false);
 };
 }
 

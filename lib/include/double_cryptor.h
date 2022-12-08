@@ -12,6 +12,8 @@ namespace udc
 template <typename SymCryptor, typename ASymDecryptor, is_serializable<typename SymCryptor::key_type> = true>
 class DoubleDecryptor : public IDecryptor<typename ASymDecryptor::private_key_type>
 {
+    ASymDecryptor m_asymDecryptor;
+    SymCryptor m_symDecryptor;
 public:
     using asym_private_key_type = typename ASymDecryptor::private_key_type;
     using sym_key_type = typename SymCryptor::key_type;
@@ -23,20 +25,20 @@ public:
         if (inputBlobSize < sizeof(size_t) + symKeySize)
             throw std::logic_error("File to decrypt is too small\n");
 
-        ASymDecryptor decryptor;
-        blob_t decryptedSymKeyData = decryptor.Decrypt(inputBlobEnd - sizeof(size_t) - symKeySize, inputBlobEnd - sizeof(size_t), key);
+        blob_t decryptedSymKeyData = m_asymDecryptor.Decrypt(inputBlobEnd - sizeof(size_t) - symKeySize, inputBlobEnd - sizeof(size_t), key);
         
         sym_key_type symKey;
         symKey.Deserialize(decryptedSymKeyData);
 
-        SymCryptor symDecryptor;
-        return symDecryptor.Decrypt(inputBlobStart, inputBlobEnd - sizeof(size_t) - symKeySize, symKey);
+        return m_symDecryptor.Decrypt(inputBlobStart, inputBlobEnd - sizeof(size_t) - symKeySize, symKey);
     }
 };
 
 template <typename SymCryptor, typename ASymEncryptor, is_deserializable<typename SymCryptor::key_type> = true>
 class DoubleEncryptor : public IEncryptor<std::pair<typename SymCryptor::key_type, typename ASymEncryptor::public_key_type>>
 {
+    SymCryptor m_symEncryptor;
+    ASymEncryptor m_asymEncryptor;
 public:
     using asym_public_key_type = typename ASymEncryptor::public_key_type;
     using sym_key_type = typename SymCryptor::key_type;
@@ -44,11 +46,9 @@ public:
     virtual blob_t Encrypt(const blob_t& inputBlob, const double_key_type& key)  { return Encrypt(inputBlob.begin(), inputBlob.end(), key); }
     virtual blob_t Encrypt(const blob_const_iterator_t& inputBlobStart, const blob_const_iterator_t& inputBlobEnd, const double_key_type& key) override
     {
-        SymCryptor symEncryptor;
-        blob_t output = symEncryptor.Encrypt(inputBlobStart, inputBlobEnd, key.first);
+        blob_t output = m_symEncryptor.Encrypt(inputBlobStart, inputBlobEnd, key.first);
 
-        ASymEncryptor asymEncryptor;
-        blob_t encryptedKey = asymEncryptor.Encrypt(key.first.Serialize(), key.second);
+        blob_t encryptedKey = m_asymEncryptor.Encrypt(key.first.Serialize(), key.second);
 
         output.insert(output.end(), encryptedKey.begin(), encryptedKey.end());
 
