@@ -19,11 +19,12 @@
 #include <memory>
 
 #include "cryptor.h"
+#include "data.h"
 
 namespace udc
 {
 
-class RSA_Key final : public IKey<blob_t>
+class RSA_Key final : public IKey<blob_t>, public IData
 {
     blob_t m_key;
 public:
@@ -35,6 +36,16 @@ public:
     virtual blob_t GetKey() const override 
     {
         return m_key;
+    }
+
+    virtual blob_t Serialize() const override
+    {
+        return GetKey();
+    }
+    
+    virtual void Deserialize(const blob_t& blob)
+    {
+        SetKey(blob);
     }
 };
 

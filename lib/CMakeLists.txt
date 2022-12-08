@@ -21,6 +21,7 @@ set(INCLUDE
     ${INCLUDE_DIR}/signature.h
     ${INCLUDE_DIR}/hash_based_signature.h
     ${INCLUDE_DIR}/PGP_cryptor.h
+    ${INCLUDE_DIR}/utils.h
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE} ${INCLUDE})

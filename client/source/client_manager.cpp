@@ -6,8 +6,8 @@
 #include "log.h"
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
-/*
-#include <CL/cl>
+
+//#include <CL/cl2.hpp>
 
 using namespace udc;
 using namespace mlog;
@@ -55,7 +55,7 @@ void ClientManager::Connect()
 udc::blob_t ClientManager::GetMessagge()
 {
 	
-	 * Recieving Keys
+	// * Recieving Keys
 	 
     std::array<int, 1> key_size;
     m_tcpSock.receive(boost::asio::buffer(key_size));
@@ -79,7 +79,7 @@ udc::blob_t ClientManager::GetMessagge()
 void ClientManager::SendMessage(udc::blob_t& mess)
 {
 	
-     * Sending crypted data
+    // * Sending crypted data
      
 
     PrintDataInfo("Sending message: ");
@@ -104,6 +104,7 @@ void ClientManager::CloseConnection()
 
 std::string ClientManager::GetCLInfo()
 {
+    /*
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
 
@@ -149,7 +150,8 @@ std::string ClientManager::GetCLInfo()
             fout << "Maximal frequency: " << device.getInfo<CL_DEVICE_MAX_CLOCK_FREQUENCY>() << std::endl;
         }
     }
-
+    
     return fout.str();
+    */
+    return "ALLOC SOME MEMORE AND STORE SOMETHING THERE\n";
 }
-*/

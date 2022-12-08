@@ -4,9 +4,12 @@
 #include <chrono>
 #include <thread>
 #include "log.h"
+#include <utils.h>
 
 using namespace udc;
 using namespace mlog;
+
+constexpr size_t KEYS_COUNT = 20;
 
 ServerManager::ServerManager(io_service& serv, int& port) : 
        m_udpSock(serv, ip::udp::endpoint(ip::udp::v4(), 0)), 
@@ -16,6 +19,13 @@ ServerManager::ServerManager(io_service& serv, int& port) :
        is_end(false)
 {
        m_udpSock.set_option(socket_base::broadcast(true));
+       RSA_KeyGenerator rsaGenerator;
+       for (size_t i = 0; i < KEYS_COUNT; i++)
+       {
+              rsaGenerator.Generate();
+              m_privateKeys.push_back(rsaGenerator.GetPrivateKey());
+              m_publicKeys.push_back(rsaGenerator.GetPublicKey());
+       }
 }
 
 
@@ -36,9 +46,22 @@ std::string ServerManager::GetOwnAddress()
 void ServerManager::Messaging(int& n)
 {
        /*Here you should write some memore(sending or recieving message)*/
-       blob_t data = {1 , 2 , 3 , 4 , 5};
-       SendMessage(n, data);
-       data = ReciveMessage(n);
+
+       blob_t keysMessage = VectorToBlob(m_publicKeys);
+       SendMessage(n, keysMessage);
+
+       blob_t clientKeysMessage = ReciveMessage(n);
+       std::vector<RSA_Key> clientPublicKeys = BlobToVector<RSA_Key>(clientKeysMessage);
+
+       PGPKeyData<RSA_Key, RSA_Key, AES128_Key> decryptionKey;
+       decryptionKey.m_bunchOfPublicKeys = clientPublicKeys;
+       decryptionKey.m_bunchOfPrivateKeys = m_privateKeys;
+
+       RSA_AES128_PGP_Decryptor pgpDecryptor;
+
+       blob_t data = ReciveMessage(n);
+       data = pgpDecryptor.Decrypt(data, decryptionKey);
+
        for (auto&& it : data)
        {
               std::cout << it;

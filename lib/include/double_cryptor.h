@@ -4,6 +4,7 @@
 #include <type_traits>
 #include "data.h"
 #include "cryptor.h"
+#include "utils.h"
 
 namespace udc
 {
@@ -52,7 +53,7 @@ public:
         output.insert(output.end(), encryptedKey.begin(), encryptedKey.end());
 
         size_t encryptedKeySize = encryptedKey.size();
-        blob_t sizeData = blob_t(reinterpret_cast<byte_t*>(&encryptedKeySize), reinterpret_cast<byte_t*>(&encryptedKeySize) + sizeof(size_t) / sizeof(byte_t));
+        blob_t sizeData = typeToBlob(encryptedKeySize);
         output.insert(output.end(), sizeData.begin(), sizeData.end());
 
         return output;
