@@ -23,7 +23,7 @@ static void BM_AES128_Encrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Encrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 15, 2 << 24, 2 << 20)->Complexity(benchmark::oN);
 
 static void BM_AES128_Decrypt_RandomData(benchmark::State& state) 
 {
@@ -39,7 +39,7 @@ static void BM_AES128_Decrypt_RandomData(benchmark::State& state)
     state.SetComplexityN(state.range(0));
 }
 
-BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 10, 2 << 26, 2 << 20)->Complexity(benchmark::oN);
+BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 15, 2 << 24, 2 << 20)->Complexity(benchmark::oN);
 
 static void BM_AES128_Decrypt_RandomDataThreads(benchmark::State& state) 
 {
