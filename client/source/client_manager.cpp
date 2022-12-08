@@ -7,7 +7,7 @@
 
 #define CL_HPP_TARGET_OPENCL_VERSION 200
 
-//#include <CL/cl2.hpp>
+#include <CL/cl2.hpp>
 
 using namespace udc;
 using namespace mlog;
@@ -104,7 +104,6 @@ void ClientManager::CloseConnection()
 
 std::string ClientManager::GetCLInfo()
 {
-    /*
     std::vector<cl::Platform> platforms;
     cl::Platform::get(&platforms);
 
@@ -152,6 +151,4 @@ std::string ClientManager::GetCLInfo()
     }
     
     return fout.str();
-    */
-    return "ALLOC SOME MEMORE AND STORE SOMETHING THERE\n";
 }

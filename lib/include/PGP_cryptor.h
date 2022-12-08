@@ -50,6 +50,8 @@ public:
 
         blob_t signedBlob = blob_t(reinterpret_cast<byte_t*>(&privateId), reinterpret_cast<byte_t*>(&privateId) + sizeof(size_t) / sizeof(byte_t));
         blob_t signatureSizeBlob = blob_t(reinterpret_cast<byte_t*>(&signatureSize), reinterpret_cast<byte_t*>(&signatureSize) + sizeof(size_t) / sizeof(byte_t));
+
+        signedBlob.reserve(2 * sizeof(size_t) + std::distance(inputBlobStart, inputBlobEnd));
         signedBlob.insert(signedBlob.end(), signatureSizeBlob.begin(), signatureSizeBlob.end());
         signedBlob.insert(signedBlob.end(),  blobSignature.begin(), blobSignature.end());
         signedBlob.insert(signedBlob.end(), inputBlobStart, inputBlobEnd);

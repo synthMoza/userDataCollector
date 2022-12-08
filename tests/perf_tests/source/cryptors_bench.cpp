@@ -41,22 +41,6 @@ static void BM_AES128_Decrypt_RandomData(benchmark::State& state)
 
 BENCHMARK(BM_AES128_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 15, 2 << 24, 2 << 20)->Complexity(benchmark::oN);
 
-static void BM_AES128_Decrypt_RandomDataThreads(benchmark::State& state) 
-{
-    AES128_Cryptor cryptor{};
-
-    auto testData = helpers::GenerateRandomData(2 << 10);
-    testData = cryptor.Encrypt(testData, g_AES128_keyGen.GetPublicKey());
-    for (auto _ : state)
-    {   
-        cryptor.SetThreadsCount(state.range(0));
-        benchmark::DoNotOptimize(cryptor.Decrypt(testData, g_AES128_keyGen.GetPrivateKey()));
-    }
-}
-
-BENCHMARK(BM_AES128_Decrypt_RandomDataThreads)->DenseRange(1, 8);
-
-
 static RSA_KeyGenerator g_RSA_keyGen = MakeKeyGenerator<RSA_KeyGenerator>();
 
 static void BM_RSA_Encrypt_RandomData(benchmark::State& state) 
@@ -91,7 +75,7 @@ static void BM_RSA_Decrypt_RandomData(benchmark::State& state)
 
 BENCHMARK(BM_RSA_Decrypt_RandomData)->RangeMultiplier(2)->DenseRange(2 << 2, 2 << 12, 2 << 7)->Complexity(benchmark::oN);
 
-static void BM_DoubleEncryptor_Encrypt_RandomData(benchmark::State& state) 
+static void BM_DoubleEncryptor_Encrypt_RandomData(benchmark::State& state)
 {
     DoubleEncryptor<AES128_Cryptor, RSA_Encryptor> doubleEncryptor;
 
