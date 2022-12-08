@@ -7,6 +7,7 @@
 #include <SHA256_hash.h>
 #include <double_cryptor.h>
 #include <hash_based_signature.h>
+#include <log.h>
 
 using namespace boost::asio; // delete me when io_service won't be created in main()
 using namespace udc;
@@ -24,7 +25,7 @@ int main()
 	io_service server; // delete me!
 	udc::ClientManager test1(server , t1);
 	info = test1.GetCLInfo();
-	std::cout << info << std::endl;
+	mlog::PrintDataInfo(info);
 	for (auto&& it : info)
 	{
 		data.push_back(static_cast<int>(it));

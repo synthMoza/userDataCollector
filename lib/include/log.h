@@ -1,11 +1,12 @@
-#include <iostream>
+#ifndef LOG_HEADER
+#define LOG_HEADER
 
+#include <iostream>
 
 namespace mlog
 {
 
-
-std::string GetTime()
+inline std::string GetTime()
 {
     auto end = std::chrono::system_clock::now();
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
@@ -22,3 +23,4 @@ void constexpr inline PrintDataInfo(T& data)
 
 
 };
+#endif // #define LOG_HEADER

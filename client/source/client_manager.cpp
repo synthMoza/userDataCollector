@@ -64,32 +64,18 @@ udc::blob_t ClientManager::GetMessagge()
     for_key.resize(key_size[0]);
     m_tcpSock.receive(boost::asio::buffer(for_key));
 
-    PrintDataInfo("Key recieved: ");
-    std::cout << std::endl << "Key size = " << key_size[0] << std::endl;
-
-    for (auto&& it : for_key)
-    {
-    	std::cout << static_cast<unsigned>(it); 
-    }
-    std::cout << std::endl;
+    PrintDataInfo("Key recieved\n");
+    auto str = std::string("Key size = ") + std::to_string(key_size[0]) + "\n";
+    PrintDataInfo(str);
 
     return for_key;
 }
 
 void ClientManager::SendMessage(udc::blob_t& mess)
 {
-	
-    // * Sending crypted data
-     
-
-    PrintDataInfo("Sending message: ");
-    std::cout << std::endl;
-
-    for (auto&& it : mess)
-    {
-    	std::cout << (it); 
-    }
-    std::cout << std::endl  << "Message size = " << mess.size() << std::endl;
+    PrintDataInfo("Sending message\n");
+    auto str = std::string("Message size = ") + std::to_string(mess.size()) + "\n";
+    PrintDataInfo(str);
 
 	std::array<int, 1> size_data;
 	size_data[0] = mess.size();
