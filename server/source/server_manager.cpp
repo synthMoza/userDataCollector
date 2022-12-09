@@ -96,10 +96,18 @@ blob_t ServerManager::ReciveMessage(int& n)
        for_msg.resize(size);
 
        size_t currentSize = 0;
-       currentSize = sockets[n].receive(boost::asio::buffer(for_msg.data(), size));
+       size_t leftSize = size;
+       while (leftSize > 0)
+       {
+              currentSize = sockets[n].receive(boost::asio::buffer(for_msg.data(), leftSize));
+              auto str = std::string("Receive size = ") + std::to_string(currentSize);
+              PrintDataInfo(str);
 
-       auto str = std::string("Receive size = ") + std::to_string(currentSize);
-       PrintDataInfo(str);
+              leftSize -= currentSize;
+       }
+
+       // auto str = std::string("Receive size = ") + std::to_string(currentSize);
+       // PrintDataInfo(str);
 
        for (auto&& ch : for_msg)
               std::cout << ch;
