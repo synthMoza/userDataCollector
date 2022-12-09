@@ -70,7 +70,7 @@ udc::blob_t ClientManager::GetMessagge()
     size_t leftSize = key_size;
     while (leftSize > 0)
     {
-        currentSize = m_tcpSock.receive(boost::asio::buffer(for_key.data(), leftSize));
+        currentSize = m_tcpSock.receive(boost::asio::buffer(for_key.data() + key_size - leftSize, leftSize));
         str = std::string("Receive size = ") + std::to_string(currentSize);
         PrintDataInfo(str);
 
