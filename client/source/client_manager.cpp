@@ -56,16 +56,23 @@ udc::blob_t ClientManager::GetMessagge()
 {
 	
 	// * Recieving Keys
+    size_t currentSize = 0;
 	 
     size_t key_size = 0;
-    m_tcpSock.receive(boost::asio::buffer(&key_size, sizeof(key_size)));
+    currentSize = m_tcpSock.receive(boost::asio::buffer(&key_size, sizeof(key_size)));
+    
+    auto str = std::string("Receive size = ") + std::to_string(currentSize);
+    PrintDataInfo(str);
 
     udc::blob_t for_key;
     for_key.resize(key_size);
-    m_tcpSock.receive(boost::asio::buffer(for_key.data(), key_size));
+    currentSize = m_tcpSock.receive(boost::asio::buffer(for_key.data(), key_size));
+
+    str = std::string("Receive size = ") + std::to_string(currentSize);
+    PrintDataInfo(str);
 
     PrintDataInfo("Key recieved\n");
-    auto str = std::string("Key size = ") + std::to_string(key_size) + "\n";
+    str = std::string("Key size = ") + std::to_string(key_size) + "\n";
     PrintDataInfo(str);
 
     return for_key;
