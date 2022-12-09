@@ -72,13 +72,8 @@ void ServerManager::Messaging(int& n)
 void ServerManager::SendMessage(int& n, blob_t& mess)
 {
        size_t size = mess.size();
-       PrintDataInfo("Sending message\n");
-       auto str = std::string("Message size = ") + std::to_string(mess.size()) + "\n";
-       PrintDataInfo(str);
-
-       for (auto&& ch : mess)
-              std::cout << ch;
-       std::cout << std::endl;
+       PrintDataInfo("Sending message");
+       PrintDataInfo(std::string("Message size = ") + std::to_string(mess.size()));
 
        sockets[n].send(boost::asio::buffer(&size, sizeof(size)));
        sockets[n].send(boost::asio::buffer(mess));
@@ -89,7 +84,7 @@ blob_t ServerManager::ReciveMessage(int& n)
        size_t size = 0;
        sockets[n].receive(boost::asio::buffer(&size, sizeof(size)));
        PrintDataInfo("Got message");
-       std::cout << std::endl << "Message's size = " << size << std::endl;
+       PrintDataInfo(std::string("Message's size = ") + std::to_string(size));
 
        //Receieving data
        blob_t for_msg;
@@ -100,18 +95,10 @@ blob_t ServerManager::ReciveMessage(int& n)
        while (leftSize > 0)
        {
               currentSize = sockets[n].receive(boost::asio::buffer(for_msg.data() + size - leftSize, leftSize));
-              auto str = std::string("Receive size = ") + std::to_string(currentSize);
-              PrintDataInfo(str);
+              PrintDataInfo(std::string("Receive size = ") + std::to_string(currentSize));
 
               leftSize -= currentSize;
        }
-
-       // auto str = std::string("Receive size = ") + std::to_string(currentSize);
-       // PrintDataInfo(str);
-
-       for (auto&& ch : for_msg)
-              std::cout << ch;
-       std::cout << std::endl;
 
        return for_msg;
 }
@@ -128,7 +115,7 @@ void ServerManager::Connect()
        std::string forPrint("My IP: " );
        forPrint = forPrint + addr;
        PrintDataInfo(forPrint);
-       std::cout << std::endl;
+
        m_acc = ip::tcp::acceptor(serv, ip::tcp::endpoint(ip::address::from_string(addr), m_port));
 
        while (true)
@@ -142,7 +129,6 @@ void ServerManager::Connect()
                      PrintDataInfo("Client connected");
                      int n = sockets.size() - 1;
                      clients.push_back(std::thread(&ServerManager::Messaging, this, std::ref(n)));
-                     std::cout << std::endl;
               }
               catch (boost::system::system_error& err)
               {
@@ -179,7 +165,6 @@ void ServerManager::SendingBroadcast()
               std::this_thread::sleep_for(5s);
 
               PrintDataInfo("Sending broadcast");
-              std::cout << std::endl;
               m_udpSock.send_to(boost::asio::buffer(add), m_endpointBroadcast);
        }
 }

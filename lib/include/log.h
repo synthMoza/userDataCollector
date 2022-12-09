@@ -16,9 +16,9 @@ inline std::string GetTime()
 }
 
 template<typename T>
-void constexpr inline PrintDataInfo(T& data)
+void constexpr inline PrintDataInfo(T&& data)
 {
-	    std::cout << "[" << GetTime() << "]: " <<  data;
+    std::cout << "[" << GetTime() << "]: " << data << std::endl;
 }
 
 
