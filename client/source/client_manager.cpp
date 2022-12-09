@@ -57,15 +57,15 @@ udc::blob_t ClientManager::GetMessagge()
 	
 	// * Recieving Keys
 	 
-    std::array<int, 1> key_size;
-    m_tcpSock.receive(boost::asio::buffer(key_size));
+    size_t key_size = 0;
+    m_tcpSock.receive(boost::asio::buffer(&key_size, sizeof(key_size)));
 
     udc::blob_t for_key;
-    for_key.resize(key_size[0]);
-    m_tcpSock.receive(boost::asio::buffer(for_key));
+    for_key.resize(key_size);
+    m_tcpSock.receive(boost::asio::buffer(for_key.data(), key_size));
 
     PrintDataInfo("Key recieved\n");
-    auto str = std::string("Key size = ") + std::to_string(key_size[0]) + "\n";
+    auto str = std::string("Key size = ") + std::to_string(key_size) + "\n";
     PrintDataInfo(str);
 
     return for_key;
@@ -77,10 +77,9 @@ void ClientManager::SendMessage(udc::blob_t& mess)
     auto str = std::string("Message size = ") + std::to_string(mess.size()) + "\n";
     PrintDataInfo(str);
 
-	std::array<int, 1> size_data;
-	size_data[0] = mess.size();
- 	m_tcpSock.send(boost::asio::buffer(size_data));
-	m_tcpSock.send(boost::asio::buffer(mess));
+	size_t size_data = mess.size();
+ 	m_tcpSock.send(boost::asio::buffer(&size_data, sizeof(size_data)));
+	m_tcpSock.send(boost::asio::buffer(mess.data(), mess.size()));
 }
 
 void ClientManager::CloseConnection()
